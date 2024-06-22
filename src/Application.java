@@ -1,6 +1,10 @@
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Application {
+    private static final String fileName = "users.txt";
     private static String[] initRegistrationForm() {
         String[] credentials = new String[4];
         Scanner scanner = new Scanner(System.in);
@@ -27,7 +31,10 @@ public class Application {
                 && UserCredentialsValidator.isValidEmail(email)
                 && UserCredentialsValidator.isValidPassword(password)
                 && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
-            // TODO: to write down the user in a file and to hash the password.
+            User registeredUser = new User(username, email, password);
+            UserReaderWriter uw = new UserReaderWriter();
+
+            uw.write(registeredUser, Application.fileName);
             return true;
         }
         return false;
@@ -48,13 +55,22 @@ public class Application {
         return credentials;
     }
 
-    private static boolean login(String[] credentials) {
-        String username = credentials[0], email = credentials[1],
-                password = credentials[2], reEnteredPassword = credentials[3];
+    private static boolean login(String[] credentials, User loggedIn) {
+        String username = credentials[0], password = credentials[1];
         if(UserCredentialsValidator.isValidUsername(username)
                 && UserCredentialsValidator.isValidPassword(password)) {
             // TODO: to check if the user is existing in a file and if it so to return initialize it and return true, else to return false
-            return true;
+            UserReaderWriter urw = new UserReaderWriter();
+            ArrayList<User> readUsers = urw.read(Application.fileName);
+            for(User currentUser : readUsers) {
+
+                if(currentUser.getUsername().equals(username) && currentUser.getPassword().equals(password)) {
+                    loggedIn = currentUser;
+                    return true;
+                }
+
+                return false;
+            }
         }
         return false;
     }
@@ -86,14 +102,19 @@ public class Application {
                     userCredentials = initLoginForm();
                 } else {
                     // TODO: to print user friendly message and to allow user to re-register yourself
+                    System.out.println("Sorry, incorrect registration data! Please try to register yourself again!");
                 }
             } else if(command.equals("Login")) {
                 userCredentials = initLoginForm();
-                boolean isLoggedIn = login(userCredentials);
+                User loggedIn = new User();
+                boolean isLoggedIn = login(userCredentials, loggedIn);
                 if(isLoggedIn) {
                     // TODO: to print out user friendly message and to allow the user to view the menu from its profile
+                    System.out.printf("Welcome, %s!", userCredentials[0]);
+                    initMenu();
                 } else {
                     // TODO: to print out an user friendly message and to allow the user to re-log in yourself
+                    System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
                 }
             }
         } while (!command.equals("Register") && !command.equals("Login"));
