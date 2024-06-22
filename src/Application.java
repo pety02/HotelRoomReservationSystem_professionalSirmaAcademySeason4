@@ -1,5 +1,3 @@
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -59,7 +57,6 @@ public class Application {
         String username = credentials[0], password = credentials[1];
         if(UserCredentialsValidator.isValidUsername(username)
                 && UserCredentialsValidator.isValidPassword(password)) {
-            // TODO: to check if the user is existing in a file and if it so to return initialize it and return true, else to return false
             UserReaderWriter urw = new UserReaderWriter();
             ArrayList<User> readUsers = urw.read(Application.fileName);
             for(User currentUser : readUsers) {
@@ -101,7 +98,6 @@ public class Application {
                 if(isRegistered) {
                     userCredentials = initLoginForm();
                 } else {
-                    // TODO: to print user friendly message and to allow user to re-register yourself
                     System.out.println("Sorry, incorrect registration data! Please try to register yourself again!");
                 }
             } else if(command.equals("Login")) {
@@ -109,11 +105,9 @@ public class Application {
                 User loggedIn = new User();
                 boolean isLoggedIn = login(userCredentials, loggedIn);
                 if(isLoggedIn) {
-                    // TODO: to print out user friendly message and to allow the user to view the menu from its profile
                     System.out.printf("Welcome, %s!", userCredentials[0]);
                     initMenu();
                 } else {
-                    // TODO: to print out an user friendly message and to allow the user to re-log in yourself
                     System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
                 }
             }
