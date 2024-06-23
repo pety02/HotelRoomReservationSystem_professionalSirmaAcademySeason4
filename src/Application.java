@@ -1,6 +1,6 @@
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Scanner;
 
 public class Application {
@@ -31,7 +31,7 @@ public class Application {
                 && UserCredentialsValidator.isValidEmail(email)
                 && UserCredentialsValidator.isValidPassword(password)
                 && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
-            User registeredUser = new User(username, email, password);
+            User registeredUser = new User(username, email, password, new ArrayList<>());
             UserReaderWriter uw = new UserReaderWriter();
 
             uw.write(registeredUser, Application.fileName);
@@ -53,6 +53,15 @@ public class Application {
         credentials[1] = scanner.nextLine();
 
         return credentials;
+    }
+
+    private static void showAllBookings(User currentUser) {
+        // TODO: to load all current user's room reservations
+    }
+
+    private static void loadProfile(User currentUser) {
+        System.out.printf("%s | %s%n", currentUser.getUsername(), currentUser.getEmail());
+        showAllBookings(currentUser);
     }
 
     private static boolean login(String[] credentials, User loggedIn) {
@@ -92,6 +101,44 @@ public class Application {
         System.out.println("3. Cancel Booking");
         System.out.println("4. Log Out");
     }
+
+    private static void viewRooms() {
+        // TODO: to implement it
+    }
+
+    private static void bookRoom(String roomId) {
+        // TODO: to implement it
+    }
+
+    private static void cancelBooking(String bookingId) {
+        // TODO: to implement it
+    }
+
+    private static void executeCommand(String command, User currentUser) {
+        Scanner scanner = new Scanner(System.in);
+        switch (command) {
+            case "View Rooms" -> {
+                viewRooms();
+            }
+            case "Book a Room" -> {
+                System.out.println("Enter room id:");
+                String roomId = scanner.nextLine();
+                bookRoom(roomId);
+            }
+            case "Cancel Booking" -> {
+                showAllBookings(currentUser);
+                System.out.println("Enter booking id:");
+                String bookingId = scanner.nextLine();
+                cancelBooking(bookingId);
+            }
+            case "Log Out" -> {
+                System.out.println("Goodbye... You had been successfully logged out!");
+                System.exit(0);
+                return;
+            }
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println("Welcome to Hotel Room Reservation System!");
         System.out.println("If you are registered, please enter \"Login\"," +
@@ -116,13 +163,26 @@ public class Application {
                 User loggedIn = new User();
                 boolean isLoggedIn = login(userCredentials, loggedIn);
                 if(isLoggedIn) {
-                    System.out.printf("Welcome, %s!%n", userCredentials[0]);
+                    loadProfile(loggedIn);
+                    System.out.printf("Welcome, %s!%n", loggedIn.getUsername());
                     initMenu();
+                    String option;
+                    do {
+                        do {
+                            System.out.print("Enter command: ");
+                            option = scanner.nextLine();
+                        } while (!option.equals("View Rooms") &&
+                                !option.equals("Book a Room") && !option.equals("Cancel Booking") &&
+                                !option.equals("Log Out") && !option.equals("END"));
+                        if(option.equals("END")) {
+                            break;
+                        }
+                        executeCommand(option, loggedIn);
+                    } while (true);
                 } else {
                     System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
                 }
             }
         } while (!command.equals("Register") && !command.equals("Login"));
-
     }
 }

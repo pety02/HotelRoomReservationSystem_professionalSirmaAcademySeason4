@@ -8,8 +8,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.ArrayList;
 
-@JsonPropertyOrder({"id", "username", "email", "password"})
+@JsonPropertyOrder({"id", "username", "email", "password, bookedRooms"})
 @JsonRootName("User")
 public class User {
     private static int userNo = 0;
@@ -17,6 +18,13 @@ public class User {
     private String username;
     private String email;
     private String password;
+    private ArrayList<Room> bookedRooms;
+
+    private String generateId() {
+        // It is the good way only for learning purposes because
+        // it may mak the program to generate not unique ids.
+        return "User" + (++User.userNo) + this.username;
+    }
 
     public static String hashPassword(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {
         SecureRandom random = new SecureRandom();
@@ -35,7 +43,6 @@ public class User {
         return sb.toString();
     }
 
-    // No @JsonCreator annotation here
     public User() {
         this.setUsername("");
         this.setId("User0 ");
@@ -48,9 +55,9 @@ public class User {
         }
     }
 
-    public User(String username, String email, String password) {
+    public User(String username, String email, String password, ArrayList<Room> bookedRooms) {
         this.setUsername(username);
-        this.setId(this.generateIdNo());
+        this.setId(this.generateId());
         this.setEmail(email);
         try {
             this.setPassword(password, false);
@@ -58,13 +65,16 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
+        this.setBookedRooms(bookedRooms);
     }
 
     @JsonCreator
     public User(@JsonProperty("id") String id,
                 @JsonProperty("username") String username,
                 @JsonProperty("email") String email,
-                @JsonProperty("password") String password) {
+                @JsonProperty("password") String password,
+                @JsonProperty("bookedRooms") ArrayList<Room> bookedRooms) {
+        this.bookedRooms = bookedRooms;
         this.setUsername(username);
         this.setId(id);
         this.setEmail(email);
@@ -83,12 +93,6 @@ public class User {
     @JsonSetter("id")
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String generateIdNo() {
-        // It is the good way only for learning purposes because
-        // it may mak the program to generate not unique ids.
-        return "User" + (++User.userNo) + this.username;
     }
 
     public String getUsername() {
@@ -118,13 +122,22 @@ public class User {
         this.password = toBeHashed ? User.hashPassword(password) : password;
     }
 
+    public ArrayList<Room> getBookedRooms() {
+        return bookedRooms;
+    }
+
+    @JsonSetter("bookedRooms")
+    public void setBookedRooms(ArrayList<Room> bookedRooms) {
+        this.bookedRooms = bookedRooms;
+    }
+
     @Override
     public String toString() {
         try {
             return new ObjectMapper().writeValueAsString(this);
         } catch (JsonProcessingException ex) {
             ex.fillInStackTrace();
-            return "null";
+            return "{}";
         }
     }
 }
