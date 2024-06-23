@@ -1,8 +1,10 @@
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Application {
-    private static final String fileName = "users.txt";
+    public static final String fileName = "users.txt";
     private static String[] initRegistrationForm() {
         String[] credentials = new String[4];
         Scanner scanner = new Scanner(System.in);
@@ -55,19 +57,28 @@ public class Application {
 
     private static boolean login(String[] credentials, User loggedIn) {
         String username = credentials[0], password = credentials[1];
-        if(UserCredentialsValidator.isValidUsername(username)
+        if(username.matches("^[a-zA-Z+0-9]{6,20}$")
                 && UserCredentialsValidator.isValidPassword(password)) {
             UserReaderWriter urw = new UserReaderWriter();
-            ArrayList<User> readUsers = urw.read(Application.fileName);
-            for(User currentUser : readUsers) {
-
-                if(currentUser.getUsername().equals(username) && currentUser.getPassword().equals(password)) {
-                    loggedIn = currentUser;
-                    return true;
+            User readUser;
+            File file = new File(Application.fileName);
+                try(FileReader fr = new FileReader(file)) {
+                        readUser = urw.read(fr, file);
+                        if (readUser == null) {
+                            System.out.println("There is no read users.");
+                            return false;
+                        } else {
+                            if (readUser.getUsername().equals(username) && readUser.getPassword().equals(password)) {
+                                loggedIn = readUser;
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                } catch (IOException ex) {
+                    ex.fillInStackTrace();
+                    return false;
                 }
-
-                return false;
-            }
         }
         return false;
     }
@@ -105,7 +116,7 @@ public class Application {
                 User loggedIn = new User();
                 boolean isLoggedIn = login(userCredentials, loggedIn);
                 if(isLoggedIn) {
-                    System.out.printf("Welcome, %s!", userCredentials[0]);
+                    System.out.printf("Welcome, %s!%n", userCredentials[0]);
                     initMenu();
                 } else {
                     System.out.println("Sorry, you mistake your credentials, so try to log-in again!");

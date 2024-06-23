@@ -1,6 +1,7 @@
-import java.util.ArrayList;
+import java.io.File;
+import java.io.FileReader;
 
 public interface IReadableWritable<T> {
     void write(T obj, String filename);
-    ArrayList<T> read(String filename);
+    User read(FileReader fr, File file);
 }

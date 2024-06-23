@@ -1,57 +1,26 @@
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.*;
 
 public class UserReaderWriter implements IReadableWritable<User> {
     public UserReaderWriter() {
 
     }
 
-    private static User parse(String json) {
-        User currentUser = new User();
-        StringBuilder sb = new StringBuilder();
-
-        String subJson = json.substring(11);
-        StringBuilder userField = new StringBuilder();
-        int index = 0;
-        while(subJson.charAt(index) != ',') {
-            userField.append(subJson.charAt(index++));
+    private static User parse(String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        User obj = mapper.reader().readValue(json, User.class);
+        if(obj == null) {
+            System.out.println("Cannot parse object!");
         }
-        currentUser.setId(Integer.parseInt(userField.toString()));
-        userField = new StringBuilder();
-        subJson = json.substring(index + 23);
-        while(subJson.charAt(index) != '\"') {
-            userField.append(subJson.charAt(index++));
-        }
-        currentUser.setUsername(userField.toString());
-        userField = new StringBuilder();
-        subJson = json.substring(index + 24);
-        while(subJson.charAt(index) != '\"') {
-            userField.append(subJson.charAt(index++));
-        }
-        currentUser.setEmail(userField.toString());
-        userField = new StringBuilder();
-        subJson = json.substring(index + 21);
-        while(subJson.charAt(index) != '\"') {
-            userField.append(subJson.charAt(index++));
-        }
-        try {
-            currentUser.setPassword(userField.toString(), false);
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException ex) {
-            ex.fillInStackTrace();
-            System.out.println("Cannot set this password!");
-        }
-
-        return currentUser;
+        return obj;
     }
 
     @Override
     public void write(User obj, String filename)  {
-        try (FileWriter bw = new FileWriter(filename)) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
             bw.write(obj.toString());
+            bw.newLine();
         } catch (IOException ex) {
             ex.fillInStackTrace();
             System.out.printf("Cannot write in file with name %s!%n", filename);
@@ -59,25 +28,27 @@ public class UserReaderWriter implements IReadableWritable<User> {
     }
 
     @Override
-    public ArrayList<User> read(String filename) {
-        try(FileReader fr = new FileReader(filename)) {
+    public User read(FileReader fr, File file) {
             StringBuilder sb = new StringBuilder();
-            int readByte = fr.read();
+        int readByte = 0;
+        try {
+            readByte = fr.read();
             sb.append((char)readByte);
-            ArrayList<User> users = new ArrayList<>();
+            User user = new User();
             while (readByte > -1) {
-                readByte = fr.read();
-                if((char) readByte == '}') {
-                    users.add(UserReaderWriter.parse(sb.toString()));
-                    sb = new StringBuilder();
-                    continue;
+                if((char) readByte == '\n') {
+                    user = UserReaderWriter.parse(sb.substring(0,sb.length() - 1));
+                    readByte = fr.read();
+                    sb.append((char)readByte);
                 }
+                readByte = fr.read();
                 sb.append((char)readByte);
             }
-            return users;
+
+            return user;
         } catch (IOException ex) {
             ex.fillInStackTrace();
-            return null;
+            return new User();
         }
     }
 }
