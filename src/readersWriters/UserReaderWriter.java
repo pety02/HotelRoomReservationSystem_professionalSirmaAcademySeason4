@@ -7,9 +7,6 @@ import models.User;
 import java.io.*;
 
 public class UserReaderWriter implements IReadableWritable<User> {
-    public UserReaderWriter() {
-
-    }
 
     private static User parse(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -27,14 +24,14 @@ public class UserReaderWriter implements IReadableWritable<User> {
             bw.newLine();
         } catch (IOException ex) {
             ex.fillInStackTrace();
-            System.out.printf("Cannot write in file with name %s!%n", filename);
+            System.out.printf("Cannot write in a file with the name %s!%n", filename);
         }
     }
 
     @Override
     public User read(FileReader fr, File file) {
-            StringBuilder sb = new StringBuilder();
-        int readByte = 0;
+        StringBuilder sb = new StringBuilder();
+        int readByte;
         try {
             readByte = fr.read();
             sb.append((char)readByte);

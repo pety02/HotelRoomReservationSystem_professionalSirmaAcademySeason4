@@ -8,37 +8,24 @@ import models.User;
 import java.time.LocalDateTime;
 
 public class HotelController implements IHotelMangeable {
-    private Hotel hotel;
-
-    public HotelController(Hotel hotel) {
-        this.setHotel(hotel);
-    }
-
-    public Hotel getHotel() {
-        return hotel;
-    }
-
-    public void setHotel(Hotel hotel) {
-        this.hotel = hotel;
-    }
 
     @Override
-    public void viewAllRooms() {
+    public void viewAllRooms(Hotel currentHotel) {
 
     }
 
     @Override
-    public void recommendRooms(LocalDateTime fromDate, LocalDateTime toDate, int guestsCount) {
+    public void recommendRooms(LocalDateTime fromDate, LocalDateTime toDate, int guestsCount, Hotel currentHotel) {
 
     }
 
     @Override
-    public void bookRoom(int id) {
+    public void bookRoom(int id, Hotel currentHotel) {
 
     }
 
     @Override
-    public void freeRooms() {
+    public void freeRooms(Hotel currentHotel) {
 
     }
 
@@ -48,7 +35,7 @@ public class HotelController implements IHotelMangeable {
     }
 
     @Override
-    public void cancelReservation(int id) {
+    public void cancelReservation(int id, Hotel currentHotel) {
 
     }
 }

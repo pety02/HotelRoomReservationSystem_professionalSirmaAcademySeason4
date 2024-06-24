@@ -1,14 +1,10 @@
-import models.DebitCard;
+import controllers.UserController;
 import models.User;
-import readersWriters.UserReaderWriter;
-import validators.UserCredentialsValidator;
-
-import java.io.*;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Application {
-    public static final String filename = "users.txt";
+    private static final UserController userController = new UserController();
+
     private static String[] initRegistrationForm() {
         String[] credentials = new String[4];
         Scanner scanner = new Scanner(System.in);
@@ -28,22 +24,6 @@ public class Application {
         return credentials;
     }
 
-    private static boolean register(String[] credentials) {
-        String username = credentials[0], email = credentials[1],
-                password = credentials[2], reEnteredPassword = credentials[3];
-        if(UserCredentialsValidator.isValidUsername(username)
-                && UserCredentialsValidator.isValidEmail(email)
-                && UserCredentialsValidator.isValidPassword(password)
-                && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
-            User registeredUser = new User(username, email, password, new ArrayList<>(), new DebitCard());
-            UserReaderWriter uw = new UserReaderWriter();
-
-            uw.write(registeredUser, Application.filename);
-            return true;
-        }
-        return false;
-    }
-
     private static String[] initLoginForm() {
         String[] credentials = new String[2];
         Scanner scanner = new Scanner(System.in);
@@ -57,43 +37,6 @@ public class Application {
         credentials[1] = scanner.nextLine();
 
         return credentials;
-    }
-
-    private static void showAllBookings(User currentUser) {
-        // TODO: to load all current user's room reservations
-    }
-
-    private static void loadProfile(User currentUser) {
-        System.out.printf("%s | %s%n", currentUser.getUsername(), currentUser.getEmail());
-        showAllBookings(currentUser);
-    }
-
-    private static boolean login(String[] credentials, User loggedIn) {
-        String username = credentials[0], password = credentials[1];
-        if(username.matches("^[a-zA-Z+0-9]{6,20}$")
-                && UserCredentialsValidator.isValidPassword(password)) {
-            UserReaderWriter urw = new UserReaderWriter();
-            User readUser;
-            File file = new File(Application.filename);
-                try(FileReader fr = new FileReader(file)) {
-                        readUser = urw.read(fr, file);
-                        if (readUser == null) {
-                            System.out.println("There is no read users.");
-                            return false;
-                        } else {
-                            if (readUser.getUsername().equals(username) && readUser.getPassword().equals(password)) {
-                                loggedIn = readUser;
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }
-                } catch (IOException ex) {
-                    ex.fillInStackTrace();
-                    return false;
-                }
-        }
-        return false;
     }
 
     private static void initMenu() {
@@ -130,7 +73,7 @@ public class Application {
                 bookRoom(roomId);
             }
             case "Cancel Booking" -> {
-                showAllBookings(currentUser);
+                userController.showAllBookings(currentUser);
                 System.out.println("Enter booking id:");
                 String bookingId = scanner.nextLine();
                 cancelBooking(bookingId);
@@ -156,7 +99,7 @@ public class Application {
             command = scanner.nextLine();
             if (command.equals("Register")) {
                 userCredentials = initRegistrationForm();
-                boolean isRegistered = register(userCredentials);
+                boolean isRegistered = userController.register(userCredentials);
                 if(isRegistered) {
                     userCredentials = initLoginForm();
                 } else {
@@ -165,9 +108,9 @@ public class Application {
             } else if(command.equals("Login")) {
                 userCredentials = initLoginForm();
                 User loggedIn = new User();
-                boolean isLoggedIn = login(userCredentials, loggedIn);
+                boolean isLoggedIn = userController.login(userCredentials, loggedIn);
                 if(isLoggedIn) {
-                    loadProfile(loggedIn);
+                    userController.loadProfile(loggedIn);
                     System.out.printf("Welcome, %s!%n", loggedIn.getUsername());
                     initMenu();
                     String option;
