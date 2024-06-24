@@ -1,4 +1,8 @@
+package readersWriters;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import interfaces.IReadableWritable;
+import models.User;
 
 import java.io.*;
 

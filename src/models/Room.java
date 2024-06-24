@@ -1,53 +1,64 @@
+package models;
+
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import types.RoomType;
 
 import java.util.ArrayList;
 
-@JsonPropertyOrder()
-@JsonRootName("Room")
+@JsonPropertyOrder({"id", "type", "amenities", "maximumOccupancy",
+        "pricePerNight", "totalPrice", "isBooked", "inReservations"})
+@JsonRootName("models.Room")
 public class Room {
     private static int roomNo = 0;
-    private String id;
+    private int id;
     private RoomType type;
     private ArrayList<String> amenities;
     private int maximumOccupancy;
     private double pricePerNight; // price per person
     private double totalPrice;
     private boolean isBooked;
-    private User booker;
+    private ArrayList<Reservation> inReservations;
 
-    private String generateId() {
-        if(this.booker == null) {
-            return "Room" + (++Room.roomNo) + "not_booked";
-        }
-        return "Room" + (++Room.roomNo) + this.booker.getId();
+    private int generateId() {
+        // It is the good way only for learning purposes because
+        // it may mak the program to generate not unique ids.
+        return ++Room.roomNo;
     }
 
     public Room() {
+        this.setType(RoomType.UNKNOWN);
+        this.setAmenities(new ArrayList<>());
+        this.setMaximumOccupancy(0);
+        this.setPricePerNight(0.0);
+        this.setTotalPrice(0.0);
+        this.setBooked(false);
+        this.setInReservations(new ArrayList<>());
+        this.setId(this.generateId());
     }
 
     public Room(RoomType type, ArrayList<String> amenities, int maximumOccupancy,
-                boolean isBooked, double pricePerNight, User booker) {
-        this.setId(this.generateId());
+                boolean isBooked, double pricePerNight, ArrayList<Reservation> inReservations) {
         this.setType(type);
         this.setAmenities(amenities);
         this.setMaximumOccupancy(maximumOccupancy);
         this.setPricePerNight(pricePerNight);
         this.setTotalPrice(pricePerNight * maximumOccupancy);
         this.setBooked(isBooked);
-        this.setBooker(booker);
+        this.setInReservations(inReservations);
+        this.setId(this.generateId());
     }
 
     @JsonCreator
-    public Room(@JsonProperty("id") String id,
+    public Room(@JsonProperty("id") int id,
                 @JsonProperty("type") RoomType type,
                 @JsonProperty("amenities") ArrayList<String> amenities,
                 @JsonProperty("maximumOccupancy") int maximumOccupancy,
                 @JsonProperty("pricePerNight") double pricePerNight,
                 @JsonProperty("totalPrice") double totalPrice,
                 @JsonProperty("isBooked") boolean isBooked,
-                @JsonProperty("booker") User booker) {
+                @JsonProperty("inReservations") ArrayList<Reservation> inReservations) {
         this.setId(id);
         this.setType(type);
         this.setAmenities(amenities);
@@ -55,15 +66,15 @@ public class Room {
         this.setPricePerNight(pricePerNight);
         this.setTotalPrice(totalPrice);
         this.setBooked(isBooked);
-        this.setBooker(booker);
+        this.setInReservations(inReservations);
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
     @JsonSetter("id")
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -121,13 +132,13 @@ public class Room {
         isBooked = booked;
     }
 
-    public User getBooker() {
-        return booker;
+    public ArrayList<Reservation> getInReservations() {
+        return inReservations;
     }
 
-    @JsonSetter("booker")
-    public void setBooker(User booker) {
-        this.booker = booker;
+    @JsonSetter("inReservations")
+    public void setInReservations(ArrayList<Reservation> inReservations) {
+        this.inReservations = inReservations;
     }
 
     @Override

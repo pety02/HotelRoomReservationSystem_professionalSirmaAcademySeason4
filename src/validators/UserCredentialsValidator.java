@@ -1,14 +1,20 @@
+package validators;
+
+import models.User;
+import readersWriters.UserReaderWriter;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
 public class UserCredentialsValidator {
+    private static final String usersFilename = "users.txt";
     public static boolean isValidUsername(String username) {
         boolean isValid = username.matches("^[a-zA-Z+0-9]{6,20}$");
         UserReaderWriter urw = new UserReaderWriter();
         try {
             int index = 0;
-            File file = new File(Application.fileName);
+            File file = new File(UserCredentialsValidator.usersFilename);
             FileReader fr = new FileReader(file);
             User readUser = new User();
             do {

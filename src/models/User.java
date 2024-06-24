@@ -1,3 +1,5 @@
+package models;
+
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,20 +12,21 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
 
-@JsonPropertyOrder({"id", "username", "email", "password, bookedRooms"})
-@JsonRootName("User")
+@JsonPropertyOrder({"id", "username", "email", "password", "reservations", "debitCard"})
+@JsonRootName("models.User")
 public class User {
     private static int userNo = 0;
-    private String id;
+    private int id;
     private String username;
     private String email;
     private String password;
-    private ArrayList<Room> bookedRooms;
+    private ArrayList<Reservation> reservations;
+    private DebitCard debitCard;
 
-    private String generateId() {
+    private int generateId() {
         // It is the good way only for learning purposes because
         // it may mak the program to generate not unique ids.
-        return "User" + (++User.userNo) + this.username;
+        return ++User.userNo;
     }
 
     public static String hashPassword(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {
@@ -45,7 +48,6 @@ public class User {
 
     public User() {
         this.setUsername("");
-        this.setId("User0 ");
         this.setEmail("");
         try {
             this.setPassword("", false);
@@ -53,11 +55,13 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
+        this.setReservations(new ArrayList<>());
+        this.setDebitCard(new DebitCard());
+        this.setId(this.generateId());
     }
 
-    public User(String username, String email, String password, ArrayList<Room> bookedRooms) {
+    public User(String username, String email, String password, ArrayList<Reservation> reservations, DebitCard debitCard) {
         this.setUsername(username);
-        this.setId(this.generateId());
         this.setEmail(email);
         try {
             this.setPassword(password, false);
@@ -65,18 +69,20 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
-        this.setBookedRooms(bookedRooms);
+        this.setReservations(reservations);
+        this.setDebitCard(debitCard);
+        this.setId(this.generateId());
     }
 
     @JsonCreator
-    public User(@JsonProperty("id") String id,
+    public User(@JsonProperty("id") int id,
                 @JsonProperty("username") String username,
                 @JsonProperty("email") String email,
                 @JsonProperty("password") String password,
-                @JsonProperty("bookedRooms") ArrayList<Room> bookedRooms) {
-        this.bookedRooms = bookedRooms;
-        this.setUsername(username);
+                @JsonProperty("reservations") ArrayList<Reservation> reservations,
+                @JsonProperty("debitCard") DebitCard debitCard) {
         this.setId(id);
+        this.setUsername(username);
         this.setEmail(email);
         try {
             this.setPassword(password, false);
@@ -84,14 +90,16 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
+        this.setReservations(reservations);
+        this.setDebitCard(debitCard);
     }
 
-    public String getId() {
+    public int getId() {
         return id;
     }
 
     @JsonSetter("id")
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -122,13 +130,22 @@ public class User {
         this.password = toBeHashed ? User.hashPassword(password) : password;
     }
 
-    public ArrayList<Room> getBookedRooms() {
-        return bookedRooms;
+    public ArrayList<Reservation> getReservations() {
+        return reservations;
     }
 
-    @JsonSetter("bookedRooms")
-    public void setBookedRooms(ArrayList<Room> bookedRooms) {
-        this.bookedRooms = bookedRooms;
+    @JsonSetter("reservations")
+    public void setReservations(ArrayList<Reservation> reservations) {
+        this.reservations = reservations;
+    }
+
+    public DebitCard getDebitCard() {
+        return debitCard;
+    }
+
+    @JsonSetter("debitCard")
+    public void setDebitCard(DebitCard debitCard) {
+        this.debitCard = debitCard;
     }
 
     @Override

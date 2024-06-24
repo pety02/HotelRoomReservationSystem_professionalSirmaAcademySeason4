@@ -1,3 +1,7 @@
+package interfaces;
+
+import models.User;
+
 import java.io.File;
 import java.io.FileReader;
 

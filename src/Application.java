@@ -1,15 +1,19 @@
+import models.DebitCard;
+import models.User;
+import readersWriters.UserReaderWriter;
+import validators.UserCredentialsValidator;
+
 import java.io.*;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Scanner;
 
 public class Application {
-    public static final String fileName = "users.txt";
+    public static final String filename = "users.txt";
     private static String[] initRegistrationForm() {
         String[] credentials = new String[4];
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Hotel Room Reservation System");
+        System.out.println("Hotel models.Room models.Reservation System");
         System.out.println("-----------------------------");
         System.out.println("Registration Form:");
         System.out.print("*Username: ");
@@ -31,10 +35,10 @@ public class Application {
                 && UserCredentialsValidator.isValidEmail(email)
                 && UserCredentialsValidator.isValidPassword(password)
                 && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
-            User registeredUser = new User(username, email, password, new ArrayList<>());
+            User registeredUser = new User(username, email, password, new ArrayList<>(), new DebitCard());
             UserReaderWriter uw = new UserReaderWriter();
 
-            uw.write(registeredUser, Application.fileName);
+            uw.write(registeredUser, Application.filename);
             return true;
         }
         return false;
@@ -44,7 +48,7 @@ public class Application {
         String[] credentials = new String[2];
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Hotel Room Reservation System");
+        System.out.println("Hotel models.Room models.Reservation System");
         System.out.println("-----------------------------");
         System.out.println("Login Form:");
         System.out.print("*Username: ");
@@ -70,7 +74,7 @@ public class Application {
                 && UserCredentialsValidator.isValidPassword(password)) {
             UserReaderWriter urw = new UserReaderWriter();
             User readUser;
-            File file = new File(Application.fileName);
+            File file = new File(Application.filename);
                 try(FileReader fr = new FileReader(file)) {
                         readUser = urw.read(fr, file);
                         if (readUser == null) {
@@ -93,11 +97,11 @@ public class Application {
     }
 
     private static void initMenu() {
-        System.out.println("Hotel Room Reservation System");
+        System.out.println("Hotel models.Room models.Reservation System");
         System.out.println("-----------------------------");
         System.out.println("MENU:");
         System.out.println("1. View Rooms");
-        System.out.println("2. Book a Room");
+        System.out.println("2. Book a models.Room");
         System.out.println("3. Cancel Booking");
         System.out.println("4. Log Out");
     }
@@ -120,7 +124,7 @@ public class Application {
             case "View Rooms" -> {
                 viewRooms();
             }
-            case "Book a Room" -> {
+            case "Book a models.Room" -> {
                 System.out.println("Enter room id:");
                 String roomId = scanner.nextLine();
                 bookRoom(roomId);
@@ -140,7 +144,7 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        System.out.println("Welcome to Hotel Room Reservation System!");
+        System.out.println("Welcome to Hotel models.Room models.Reservation System!");
         System.out.println("If you are registered, please enter \"Login\"," +
                 "\nif you are not registered, please enter \"Register\"!");
 
@@ -172,7 +176,7 @@ public class Application {
                             System.out.print("Enter command: ");
                             option = scanner.nextLine();
                         } while (!option.equals("View Rooms") &&
-                                !option.equals("Book a Room") && !option.equals("Cancel Booking") &&
+                                !option.equals("Book a models.Room") && !option.equals("Cancel Booking") &&
                                 !option.equals("Log Out") && !option.equals("END"));
                         if(option.equals("END")) {
                             break;
