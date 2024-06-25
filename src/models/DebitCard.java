@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.Random;
 
-@JsonPropertyOrder({"id", "iban", "creationDate", "expirationDate", "balance", "owner"})
+@JsonPropertyOrder({"id", "iban", "creationDate", "expirationDate", "balance"})
 @JsonRootName("DebitCard")
 public class DebitCard {
     private static int debitCardNo = 0;
@@ -16,6 +16,7 @@ public class DebitCard {
     private LocalDateTime creationDate;
     private LocalDateTime expirationDate;
     private double balance;
+    @JsonIgnore
     private User owner;
 
     private int generateId() {
@@ -66,7 +67,7 @@ public class DebitCard {
                      @JsonProperty("creationDate") LocalDateTime creationDate,
                      @JsonProperty("expirationDate") LocalDateTime expirationDate,
                      @JsonProperty("balance") double balance,
-                     @JsonProperty("owner") User owner) {
+                     User owner) {
         this.setId(id);
         this.setIban(iban);
         this.setBalance(balance);
@@ -124,7 +125,6 @@ public class DebitCard {
         return owner;
     }
 
-    @JsonSetter("owner")
     public void setOwner(User owner) {
         this.owner = owner;
     }

@@ -6,16 +6,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Map;
 
-@JsonPropertyOrder({"id", "fromDate", "toDate", "rooms", "bookedBy",
-    "cancellationFees", "totalPrice", "isCancelled"})
+@JsonPropertyOrder({"id", "fromDate", "toDate", "cancellationFees", "totalPrice", "isCancelled"})
 @JsonRootName("models.Reservation")
 public class Reservation {
     private static int reservationNo = 0;
     private int id;
     private LocalDateTime fromDate;
     private LocalDateTime toDate;
+    @JsonIgnore
     private ArrayList<Room> rooms;
+    @JsonIgnore
     private User bookedBy;
     private double cancellationFees;
     private double totalPrice;
@@ -58,8 +60,8 @@ public class Reservation {
     public Reservation(@JsonProperty("id") int id,
                        @JsonProperty("fromDate") LocalDateTime fromDate,
                        @JsonProperty("toDate") LocalDateTime toDate,
-                       @JsonProperty("rooms") ArrayList<Room> rooms,
-                       @JsonProperty("bookedBy") User bookedBy,
+                       ArrayList<Room> rooms,
+                       User bookedBy,
                        @JsonProperty("cancellationFees") double cancellationFees,
                        @JsonProperty("totalPrice") double totalPrice,
                        @JsonProperty("isCancelled") boolean isCancelled) {
@@ -104,7 +106,6 @@ public class Reservation {
         return rooms;
     }
 
-    @JsonSetter("rooms")
     public void setRooms(ArrayList<Room> rooms) {
         this.rooms = rooms;
     }
@@ -113,7 +114,6 @@ public class Reservation {
         return bookedBy;
     }
 
-    @JsonSetter("bookedBy")
     public void setBookedBy(User bookedBy) {
         this.bookedBy = bookedBy;
     }
@@ -142,6 +142,7 @@ public class Reservation {
 
     @JsonSetter("isCancelled")
     public void setCancelled(boolean cancelled) {
+
         isCancelled = cancelled;
     }
 
@@ -149,9 +150,6 @@ public class Reservation {
         double total = 0.0;
         for(Room bookedRoom : this.rooms) {
             total += bookedRoom.getTotalPrice();
-        }
-        if(this.isCancelled) {
-            total += this.cancellationFees;
         }
 
         return total;

@@ -6,26 +6,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
 
-@JsonPropertyOrder({"id", "username", "email", "password", "reservations", "debitCard"})
-@JsonRootName("models.User")
+@JsonPropertyOrder({"id", "username", "email", "password"})
+@JsonRootName("User")
 public class User {
     private static int userNo = 0;
     private int id;
     private String username;
     private String email;
     private String password;
+
+    @JsonIgnore
     private ArrayList<Reservation> reservations;
+
+    @JsonIgnore
     private DebitCard debitCard;
 
     private int generateId() {
-        // It is the good way only for learning purposes because
-        // it may mak the program to generate not unique ids.
         return ++User.userNo;
     }
 
@@ -40,24 +43,15 @@ public class User {
         byte[] hash = factory.generateSecret(spec).getEncoded();
         StringBuilder sb = new StringBuilder();
         for (byte b : hash) {
-            sb.append(String.format("%02x", b)); // Change to hexadecimal string representation
+            sb.append(String.format("%02x", b));
         }
 
         return sb.toString();
     }
 
+    // Default constructor for Jackson
     public User() {
-        this.setUsername("");
-        this.setEmail("");
-        try {
-            this.setPassword("", false);
-        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
-            ex.fillInStackTrace();
-            this.password = null;
-        }
-        this.setReservations(new ArrayList<>());
-        this.setDebitCard(new DebitCard());
-        this.setId(this.generateId());
+        this("", "", "", new ArrayList<>(), new DebitCard());
     }
 
     public User(String username, String email, String password, ArrayList<Reservation> reservations, DebitCard debitCard) {
@@ -78,9 +72,26 @@ public class User {
     public User(@JsonProperty("id") int id,
                 @JsonProperty("username") String username,
                 @JsonProperty("email") String email,
-                @JsonProperty("password") String password,
-                @JsonProperty("reservations") ArrayList<Reservation> reservations,
-                @JsonProperty("debitCard") DebitCard debitCard) {
+                @JsonProperty("password") String password) {
+        this.setId(id);
+        this.setUsername(username);
+        this.setEmail(email);
+        try {
+            this.setPassword(password, false);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
+            ex.fillInStackTrace();
+            this.password = null;
+        }
+        this.setReservations(new ArrayList<>());
+        this.setDebitCard(new DebitCard());
+    }
+
+    public User(int id,
+                String username,
+                String email,
+                String password,
+                ArrayList<Reservation> reservations,
+                DebitCard debitCard) {
         this.setId(id);
         this.setUsername(username);
         this.setEmail(email);
@@ -134,7 +145,6 @@ public class User {
         return reservations;
     }
 
-    @JsonSetter("reservations")
     public void setReservations(ArrayList<Reservation> reservations) {
         this.reservations = reservations;
     }
@@ -143,7 +153,6 @@ public class User {
         return debitCard;
     }
 
-    @JsonSetter("debitCard")
     public void setDebitCard(DebitCard debitCard) {
         this.debitCard = debitCard;
     }
@@ -156,5 +165,14 @@ public class User {
             ex.fillInStackTrace();
             return "{}";
         }
+    }
+
+    private static User parse(String json) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        User obj = mapper.reader().readValue(json, User.class);
+        if(obj == null) {
+            System.out.println("Cannot parse object!");
+        }
+        return obj;
     }
 }

@@ -1,18 +1,21 @@
 package models;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-@JsonPropertyOrder({})
+@JsonPropertyOrder({"id", "name", "address", "incomes"})
 @JsonRootName("Hotel")
 public class Hotel {
     private static int hotelNo;
     private int id;
     private String name;
     private String address;
+    @JsonIgnore
     private ArrayList<Room> allRooms;
+    @JsonIgnore
     private ArrayList<Room> bookedRooms;
     private double incomes;
 
@@ -24,31 +27,46 @@ public class Hotel {
     }
 
     public Hotel(String name, String address, ArrayList<Room> allRooms) {
-        this.name = name;
-        this.address = address;
-        this.allRooms = allRooms;
+        this.setId(this.generateId());
+        this.setName(name);
+        this.setAddress(address);
+        this.setAllRooms(allRooms);
+        this.setBookedRooms(new ArrayList<>());
+        this.setIncomes(0.0);
     }
 
     @JsonCreator
-    public Hotel(@JsonProperty("") int id,
-                 @JsonProperty("") String name,
-                 @JsonProperty("") String address,
-                 @JsonProperty("") ArrayList<Room> allRooms,
-                 @JsonProperty("") ArrayList<Room> bookedRooms,
-                 @JsonProperty("") double incomes) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.allRooms = allRooms;
-        this.bookedRooms = bookedRooms;
-        this.incomes = incomes;
+    public Hotel(@JsonProperty("id") int id,
+                 @JsonProperty("name") String name,
+                 @JsonProperty("address") String address,
+                 @JsonProperty("incomes") double incomes) {
+        this.setId(id);
+        this.setName(name);
+        this.setAddress(address);
+        this.setAllRooms(new ArrayList<>());
+        this.setBookedRooms(new ArrayList<>());
+        this.setIncomes(incomes);
+    }
+
+    public Hotel(int id,
+                 String name,
+                 String address,
+                 ArrayList<Room> allRooms,
+                 ArrayList<Room> bookedRooms,
+                 double incomes) {
+        this.setId(id);
+        this.setName(name);
+        this.setAddress(address);
+        this.setAllRooms(allRooms);
+        this.setBookedRooms(bookedRooms);
+        this.setIncomes(incomes);
     }
 
     public int getId() {
         return id;
     }
 
-    @JsonSetter("")
+    @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
@@ -57,7 +75,7 @@ public class Hotel {
         return name;
     }
 
-    @JsonSetter("")
+    @JsonSetter("name")
     public void setName(String name) {
         this.name = name;
     }
@@ -66,7 +84,7 @@ public class Hotel {
         return address;
     }
 
-    @JsonSetter("")
+    @JsonSetter("address")
     public void setAddress(String address) {
         this.address = address;
     }
@@ -75,7 +93,6 @@ public class Hotel {
         return allRooms;
     }
 
-    @JsonSetter("")
     public void setAllRooms(ArrayList<Room> allRooms) {
         this.allRooms = allRooms;
     }
@@ -84,7 +101,6 @@ public class Hotel {
         return bookedRooms;
     }
 
-    @JsonSetter("")
     public void setBookedRooms(ArrayList<Room> bookedRooms) {
         this.bookedRooms = bookedRooms;
     }
@@ -93,20 +109,18 @@ public class Hotel {
         return incomes;
     }
 
-    @JsonSetter("")
+    @JsonSetter("incomes")
     public void setIncomes(double incomes) {
         this.incomes = incomes;
     }
 
     @Override
     public String toString() {
-        return "Hotel{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", address='" + address + '\'' +
-                ", allRooms=" + allRooms +
-                ", bookedRooms=" + bookedRooms +
-                ", incomes=" + incomes +
-                '}';
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException ex) {
+            ex.fillInStackTrace();
+            return "{}";
+        }
     }
 }

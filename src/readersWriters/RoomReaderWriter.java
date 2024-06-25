@@ -47,6 +47,7 @@ public class RoomReaderWriter implements IReadableWritable<Room> {
             return room;
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            System.out.printf("Cannot read from a file with the name %s", file.getName());
             return new Room();
         }
     }

@@ -5,20 +5,27 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import types.RoomType;
 
+import java.time.LocalDateTime;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
-@JsonPropertyOrder({"id", "type", "amenities", "maximumOccupancy",
-        "pricePerNight", "totalPrice", "isBooked", "inReservations"})
+@JsonPropertyOrder({"id", "hotel", "type", "amenities", "maximumOccupancy",
+        "pricePerNight", "totalPrice", "isBooked", "bookingAvailability"})
 @JsonRootName("models.Room")
 public class Room {
     private static int roomNo = 0;
     private int id;
+    private Hotel hotel;
     private RoomType type;
     private ArrayList<String> amenities;
     private int maximumOccupancy;
     private double pricePerNight; // price per person
     private double totalPrice;
     private boolean isBooked;
+    private Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability;
+    @JsonIgnore
     private ArrayList<Reservation> inReservations;
 
     private int generateId() {
@@ -34,38 +41,73 @@ public class Room {
         this.setPricePerNight(0.0);
         this.setTotalPrice(0.0);
         this.setBooked(false);
+        Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> isBooked = new HashMap<>();
+        Map.Entry<LocalDateTime, LocalDateTime> dates = new AbstractMap.SimpleEntry<>(
+                LocalDateTime.now(),
+                LocalDateTime.now()
+        );
+        isBooked.put(dates, false);
+        this.setBookingAvailability(isBooked);
         this.setInReservations(new ArrayList<>());
         this.setId(this.generateId());
     }
 
-    public Room(RoomType type, ArrayList<String> amenities, int maximumOccupancy,
-                boolean isBooked, double pricePerNight, ArrayList<Reservation> inReservations) {
+    public Room(Hotel hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
+                boolean isBooked, Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability,
+                double pricePerNight, ArrayList<Reservation> inReservations) {
+        this.setHotel(hotel);
         this.setType(type);
         this.setAmenities(amenities);
         this.setMaximumOccupancy(maximumOccupancy);
         this.setPricePerNight(pricePerNight);
         this.setTotalPrice(pricePerNight * maximumOccupancy);
         this.setBooked(isBooked);
+        this.setBookingAvailability(bookingAvailability);
         this.setInReservations(inReservations);
         this.setId(this.generateId());
     }
 
     @JsonCreator
     public Room(@JsonProperty("id") int id,
+                @JsonProperty("hotel") Hotel hotel,
                 @JsonProperty("type") RoomType type,
                 @JsonProperty("amenities") ArrayList<String> amenities,
                 @JsonProperty("maximumOccupancy") int maximumOccupancy,
                 @JsonProperty("pricePerNight") double pricePerNight,
                 @JsonProperty("totalPrice") double totalPrice,
                 @JsonProperty("isBooked") boolean isBooked,
-                @JsonProperty("inReservations") ArrayList<Reservation> inReservations) {
+                @JsonProperty("bookingAvailability") Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability) {
         this.setId(id);
+        this.setHotel(hotel);
         this.setType(type);
         this.setAmenities(amenities);
         this.setMaximumOccupancy(maximumOccupancy);
         this.setPricePerNight(pricePerNight);
         this.setTotalPrice(totalPrice);
         this.setBooked(isBooked);
+        this.setBookingAvailability(bookingAvailability);
+        this.setInReservations(new ArrayList<>());
+    }
+
+    public Room(int id,
+                Hotel hotel,
+                RoomType type,
+                ArrayList<String> amenities,
+                int maximumOccupancy,
+                double pricePerNight,
+                double totalPrice,
+                boolean isBooked,
+                Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability,
+                ArrayList<Reservation> inReservations) {
+        this.setId(id);
+        this.setHotel(hotel);
+        this.setType(type);
+        this.setAmenities(amenities);
+        this.setMaximumOccupancy(maximumOccupancy);
+        this.setPricePerNight(pricePerNight);
+        this.setTotalPrice(totalPrice);
+        this.setBooked(isBooked);
+        this.setBookingAvailability(bookingAvailability);
         this.setInReservations(inReservations);
     }
 
@@ -76,6 +118,15 @@ public class Room {
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Hotel getHotel() {
+        return hotel;
+    }
+
+    @JsonSetter("hotel")
+    public void setHotel(Hotel hotel) {
+        this.hotel = hotel;
     }
 
     public RoomType getType() {
@@ -127,16 +178,24 @@ public class Room {
         return isBooked;
     }
 
-    @JsonSetter("booked")
+    @JsonSetter("isBooked")
     public void setBooked(boolean booked) {
-        isBooked = booked;
+        this.isBooked = booked;
+    }
+
+    public Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> isCurrentlyAvailable() {
+        return bookingAvailability;
+    }
+
+    @JsonSetter("bookingAvailability")
+    public void setBookingAvailability(Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> booked) {
+        bookingAvailability = booked;
     }
 
     public ArrayList<Reservation> getInReservations() {
         return inReservations;
     }
 
-    @JsonSetter("inReservations")
     public void setInReservations(ArrayList<Reservation> inReservations) {
         this.inReservations = inReservations;
     }

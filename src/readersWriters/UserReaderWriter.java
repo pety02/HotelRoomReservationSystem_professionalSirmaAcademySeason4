@@ -1,10 +1,13 @@
 package readersWriters;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import interfaces.IReadableWritable;
+import models.DebitCard;
 import models.User;
 
 import java.io.*;
+import java.util.ArrayList;
 
 public class UserReaderWriter implements IReadableWritable<User> {
 
@@ -49,6 +52,7 @@ public class UserReaderWriter implements IReadableWritable<User> {
             return user;
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            System.out.printf("Cannot read from a file with the name %s", file.getName());
             return new User();
         }
     }

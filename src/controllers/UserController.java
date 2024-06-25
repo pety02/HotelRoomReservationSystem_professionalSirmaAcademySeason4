@@ -2,6 +2,7 @@ package controllers;
 
 import interfaces.IUserManageable;
 import models.DebitCard;
+import models.Reservation;
 import models.User;
 import readersWriters.UserReaderWriter;
 import validators.UserCredentialsValidator;
@@ -18,11 +19,14 @@ public class UserController implements IUserManageable {
     public boolean register(String[] credentials) {
         String username = credentials[0], email = credentials[1],
                 password = credentials[2], reEnteredPassword = credentials[3];
-        if(UserCredentialsValidator.isValidUsername(username)
+        if(username.matches("^[a-zA-Z+0-9]{6,20}$")
                 && UserCredentialsValidator.isValidEmail(email)
                 && UserCredentialsValidator.isValidPassword(password)
                 && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
-            User registeredUser = new User(username, email, password, new ArrayList<>(), new DebitCard());
+            User registeredUser = new User(username, email, password, new ArrayList<>(), null);
+            DebitCard userDebitCard = new DebitCard();
+            userDebitCard.setOwner(registeredUser);
+            registeredUser.setDebitCard(userDebitCard);
             UserReaderWriter uw = new UserReaderWriter();
 
             uw.write(registeredUser, UserController.usersFilename);
@@ -68,7 +72,12 @@ public class UserController implements IUserManageable {
 
     @Override
     public void showAllBookings(User currentUser) {
-        // TODO: to load all current user's room reservations
+        System.out.println("All reservations:");
+        System.out.println("------------------");
+        System.out.println();
+        for(Reservation currentReservation : currentUser.getReservations()) {
+            System.out.println(currentReservation);
+        }
     }
 
     @Override
