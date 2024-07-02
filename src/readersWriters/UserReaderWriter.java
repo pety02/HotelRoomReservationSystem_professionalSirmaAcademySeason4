@@ -52,6 +52,7 @@ public class UserReaderWriter implements IReadableWritable<User> {
             return user;
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            ex.printStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
             return new User();
         }

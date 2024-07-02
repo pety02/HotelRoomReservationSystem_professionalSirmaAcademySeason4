@@ -12,6 +12,8 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 @JsonPropertyOrder({"id", "username", "email", "password"})
 @JsonRootName("User")
@@ -21,12 +23,8 @@ public class User {
     private String username;
     private String email;
     private String password;
-
-    @JsonIgnore
-    private ArrayList<Reservation> reservations;
-
-    @JsonIgnore
-    private DebitCard debitCard;
+    private Map<Integer, Double> reservations;
+    private Map.Entry<Integer, Double> debitCard;
 
     private int generateId() {
         return ++User.userNo;
@@ -53,6 +51,9 @@ public class User {
     public User() {
         this("", "", "", new ArrayList<>(), new DebitCard());
     }
+    public User(String username, String email, String password) {
+        this(username, email, password, new ArrayList<>(), null);
+    }
 
     public User(String username, String email, String password, ArrayList<Reservation> reservations, DebitCard debitCard) {
         this.setUsername(username);
@@ -63,8 +64,16 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
-        this.setReservations(reservations);
-        this.setDebitCard(debitCard);
+        Map<Integer, Double> rs = new HashMap<>();
+        for(Reservation r : reservations) {
+            rs.put(r.getId(), r.getTotalPrice());
+        }
+        this.setReservations(rs);
+        if(debitCard != null) {
+            this.setDebitCard(Map.entry(debitCard.getId(), debitCard.getBalance()));
+        } else {
+            this.setDebitCard(Map.entry(0, 0.0));
+        }
         this.setId(this.generateId());
     }
 
@@ -72,7 +81,9 @@ public class User {
     public User(@JsonProperty("id") int id,
                 @JsonProperty("username") String username,
                 @JsonProperty("email") String email,
-                @JsonProperty("password") String password) {
+                @JsonProperty("password") String password,
+                @JsonProperty("reservations") Map<Integer, Double> reservations,
+                @JsonProperty("debitCard") Map.Entry<Integer, Double> debitCard) {
         this.setId(id);
         this.setUsername(username);
         this.setEmail(email);
@@ -82,16 +93,15 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
-        this.setReservations(new ArrayList<>());
-        this.setDebitCard(new DebitCard());
+
+        this.setReservations(reservations);
+        this.setDebitCard(debitCard);
     }
 
     public User(int id,
                 String username,
                 String email,
-                String password,
-                ArrayList<Reservation> reservations,
-                DebitCard debitCard) {
+                String password) {
         this.setId(id);
         this.setUsername(username);
         this.setEmail(email);
@@ -101,8 +111,9 @@ public class User {
             ex.fillInStackTrace();
             this.password = null;
         }
-        this.setReservations(reservations);
-        this.setDebitCard(debitCard);
+        this.setReservations(new HashMap<>());
+        Map.Entry<Integer, Double> dce = Map.entry(0,0.0);
+        this.setDebitCard(dce);
     }
 
     public int getId() {
@@ -141,19 +152,21 @@ public class User {
         this.password = toBeHashed ? User.hashPassword(password) : password;
     }
 
-    public ArrayList<Reservation> getReservations() {
+    public Map<Integer, Double> getReservations() {
         return reservations;
     }
 
-    public void setReservations(ArrayList<Reservation> reservations) {
+    @JsonSetter("reservations")
+    public void setReservations(Map<Integer, Double> reservations) {
         this.reservations = reservations;
     }
 
-    public DebitCard getDebitCard() {
+    public Map.Entry<Integer, Double> getDebitCard() {
         return debitCard;
     }
 
-    public void setDebitCard(DebitCard debitCard) {
+    @JsonSetter("debitCard")
+    public void setDebitCard(Map.Entry<Integer, Double> debitCard) {
         this.debitCard = debitCard;
     }
 
@@ -174,5 +187,10 @@ public class User {
             System.out.println("Cannot parse object!");
         }
         return obj;
+    }
+
+    public static void main(String[] args) {
+        User u =  new User("petya123", "petyata@abv.bg", "petya123");
+        System.out.println(u);
     }
 }

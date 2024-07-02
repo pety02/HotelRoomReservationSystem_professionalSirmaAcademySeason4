@@ -4,6 +4,7 @@ import interfaces.IUserManageable;
 import models.DebitCard;
 import models.Reservation;
 import models.User;
+import readersWriters.ReservationReaderWriter;
 import readersWriters.UserReaderWriter;
 import validators.UserCredentialsValidator;
 
@@ -11,9 +12,12 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.logging.Logger;
 
 public class UserController implements IUserManageable {
     private final static String usersFilename = "users.txt";
+    private final static String reservationsFilename = "reservations.txt";
 
     @Override
     public boolean register(String[] credentials) {
@@ -25,8 +29,8 @@ public class UserController implements IUserManageable {
                 && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
             User registeredUser = new User(username, email, password, new ArrayList<>(), null);
             DebitCard userDebitCard = new DebitCard();
-            userDebitCard.setOwner(registeredUser);
-            registeredUser.setDebitCard(userDebitCard);
+            userDebitCard.setOwner(registeredUser.getId());
+            registeredUser.setDebitCard(Map.entry(userDebitCard.getId(), userDebitCard.getBalance()));
             UserReaderWriter uw = new UserReaderWriter();
 
             uw.write(registeredUser, UserController.usersFilename);
@@ -50,7 +54,9 @@ public class UserController implements IUserManageable {
                     return false;
                 } else {
                     if (readUser.getUsername().equals(username) && readUser.getPassword().equals(password)) {
-                        loggedIn = readUser;
+                        loggedIn.setId(readUser.getId());
+                        loggedIn.setUsername(readUser.getUsername());
+                        loggedIn.setEmail(readUser.getEmail());
                         return true;
                     } else {
                         return false;
@@ -75,7 +81,26 @@ public class UserController implements IUserManageable {
         System.out.println("All reservations:");
         System.out.println("------------------");
         System.out.println();
-        for(Reservation currentReservation : currentUser.getReservations()) {
+        ArrayList<Reservation> allReservations = new ArrayList<>();
+        ReservationReaderWriter rrw = new ReservationReaderWriter();
+        Reservation readReservation;
+
+        File file = new File(UserController.reservationsFilename);
+        ArrayList<Reservation> currentUserReservations = new ArrayList<>();
+        try(FileReader fr = new FileReader(file)) {
+            readReservation = rrw.read(fr, file);
+            if (readReservation == null) {
+                System.out.println("There is no read reservations.");
+            } else {
+                if (readReservation.getBookedBy() == currentUser.getId()) {
+                    currentUserReservations.add(readReservation);
+                }
+            }
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+        }
+
+        for(Reservation currentReservation : currentUserReservations) {
             System.out.println(currentReservation);
         }
     }

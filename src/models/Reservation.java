@@ -1,39 +1,43 @@
 package models;
-
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.*;
+
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import utils.LocalDateTimeMapDeserializer;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
-@JsonPropertyOrder({"id", "fromDate", "toDate", "cancellationFees", "totalPrice", "isCancelled"})
-@JsonRootName("models.Reservation")
+
+@JsonPropertyOrder({"id", "fromDate", "toDate", "rooms", "bookedBy", "cancellationFees", "totalPrice", "isCancelled"})
+@JsonRootName("Reservation")
 public class Reservation {
     private static int reservationNo = 0;
     private int id;
     private LocalDateTime fromDate;
     private LocalDateTime toDate;
-    @JsonIgnore
-    private ArrayList<Room> rooms;
-    @JsonIgnore
-    private User bookedBy;
+    private Map<Integer, Double> rooms;
+    private int bookedBy;
     private double cancellationFees;
     private double totalPrice;
     private boolean isCancelled;
 
     private int generateId() {
         // It is the good way only for learning purposes because
-        // it may mak the program to generate not unique ids.
+        // it may make the program to generate not unique ids.
         return ++Reservation.reservationNo;
     }
 
     public Reservation() {
         this.setFromDate(LocalDateTime.now());
         this.setToDate(LocalDateTime.now());
-        this.setRooms(new ArrayList<>());
-        this.setBookedBy(null);
+        this.setRooms(new HashMap<>());
+        this.setBookedBy(0);
         this.setCancellationFees(0.0);
         this.setTotalPrice(0.0);
         this.setCancelled(false);
@@ -42,26 +46,40 @@ public class Reservation {
 
     public Reservation(LocalDateTime fromDate,
                        LocalDateTime toDate,
-                       ArrayList<Room> rooms,
+                       Map<Integer, Double> rooms,
                        User bookedBy,
                        double cancellationFees,
                        boolean isCancelled) {
         this.setFromDate(fromDate);
         this.setToDate(toDate);
         this.setRooms(rooms);
-        this.setBookedBy(bookedBy);
+        this.setBookedBy(bookedBy.getId());
         this.setCancellationFees(cancellationFees);
         this.setTotalPrice(this.calculateTotalPrice());
         this.setCancelled(isCancelled);
         this.setId(this.generateId());
     }
 
+    public Reservation(LocalDateTime fromDate,
+                       LocalDateTime toDate,
+                       double cancellationFees,
+                       boolean isCancelled) {
+        this.setId(this.generateId());
+        this.setFromDate(fromDate);
+        this.setToDate(toDate);
+        this.setRooms(new HashMap<>());
+        this.setBookedBy(0);
+        this.setCancellationFees(cancellationFees);
+        this.setTotalPrice(0.0);
+        this.setCancelled(isCancelled);
+    }
+
     @JsonCreator
     public Reservation(@JsonProperty("id") int id,
                        @JsonProperty("fromDate") LocalDateTime fromDate,
                        @JsonProperty("toDate") LocalDateTime toDate,
-                       ArrayList<Room> rooms,
-                       User bookedBy,
+                       @JsonProperty("rooms") Map<Integer, Double> rooms,
+                       @JsonProperty("bookedBy") int bookedBy,
                        @JsonProperty("cancellationFees") double cancellationFees,
                        @JsonProperty("totalPrice") double totalPrice,
                        @JsonProperty("isCancelled") boolean isCancelled) {
@@ -102,19 +120,21 @@ public class Reservation {
         this.toDate = toDate;
     }
 
-    public ArrayList<Room> getRooms() {
+    @JsonSetter("rooms")
+    public Map<Integer, Double> getRooms() {
         return rooms;
     }
 
-    public void setRooms(ArrayList<Room> rooms) {
+    public void setRooms(Map<Integer, Double> rooms) {
         this.rooms = rooms;
     }
 
-    public User getBookedBy() {
+    public int getBookedBy() {
         return bookedBy;
     }
 
-    public void setBookedBy(User bookedBy) {
+    @JsonSetter("bookedBy")
+    public void setBookedBy(int bookedBy) {
         this.bookedBy = bookedBy;
     }
 
@@ -142,14 +162,13 @@ public class Reservation {
 
     @JsonSetter("isCancelled")
     public void setCancelled(boolean cancelled) {
-
         isCancelled = cancelled;
     }
 
     public double calculateTotalPrice() {
         double total = 0.0;
-        for(Room bookedRoom : this.rooms) {
-            total += bookedRoom.getTotalPrice();
+        for (Map.Entry<Integer, Double> bookedRoom : this.rooms.entrySet()) {
+            total += bookedRoom.getValue();
         }
 
         return total;
@@ -157,11 +176,23 @@ public class Reservation {
 
     @Override
     public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setDateFormat(new StdDateFormat().withColonInTimeZone(true));
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(Map.class, new LocalDateTimeMapDeserializer());
+        mapper.registerModule(module);
+
         try {
-            return new ObjectMapper().writeValueAsString(this);
+            return mapper.writeValueAsString(this);
         } catch (JsonProcessingException ex) {
             ex.fillInStackTrace();
             return "{}";
         }
+    }
+
+    public static void main(String[] args) {
+        Reservation r = new Reservation(LocalDateTime.of(2024,7,2,10,30), LocalDateTime.of(2024,7,5,12,30), 100.00, false);
+        System.out.println(r);
     }
 }

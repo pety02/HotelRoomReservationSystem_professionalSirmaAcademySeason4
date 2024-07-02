@@ -2,8 +2,16 @@ package models;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import types.RoomType;
+import utils.LocalDateTimeMapDeserializer;
+import utils.LocalDateTimeMapEntryDeserializer;
+import utils.LocalDateTimeMapEntrySerializer;
+import utils.LocalDateTimeMapSerializer;
 
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
@@ -12,49 +20,45 @@ import java.util.HashMap;
 import java.util.Map;
 
 @JsonPropertyOrder({"id", "hotel", "type", "amenities", "maximumOccupancy",
-        "pricePerNight", "totalPrice", "isBooked", "bookingAvailability"})
-@JsonRootName("models.Room")
+        "pricePerNight", "totalPrice", "isBooked", "bookingAvailability", "inReservations"})
+@JsonRootName("Room")
 public class Room {
     private static int roomNo = 0;
     private int id;
-    private Hotel hotel;
+    private Integer hotel;
     private RoomType type;
     private ArrayList<String> amenities;
     private int maximumOccupancy;
     private double pricePerNight; // price per person
     private double totalPrice;
     private boolean isBooked;
-    private Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability;
-    @JsonIgnore
-    private ArrayList<Reservation> inReservations;
+    private Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability;
+    private ArrayList<Integer> inReservations;
 
     private int generateId() {
-        // It is the good way only for learning purposes because
-        // it may mak the program to generate not unique ids.
         return ++Room.roomNo;
     }
 
     public Room() {
         this.setType(RoomType.UNKNOWN);
+        this.setHotel(0);
         this.setAmenities(new ArrayList<>());
         this.setMaximumOccupancy(0);
         this.setPricePerNight(0.0);
         this.setTotalPrice(0.0);
         this.setBooked(false);
-        Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> isBooked = new HashMap<>();
-        Map.Entry<LocalDateTime, LocalDateTime> dates = new AbstractMap.SimpleEntry<>(
-                LocalDateTime.now(),
-                LocalDateTime.now()
-        );
-        isBooked.put(dates, false);
+        Map<Boolean, ArrayList<LocalDateTime>> isBooked = new HashMap<>();
+        ArrayList<LocalDateTime> dates = new ArrayList<>();
+        dates.add(LocalDateTime.now());
+        isBooked.put(false, dates);
         this.setBookingAvailability(isBooked);
         this.setInReservations(new ArrayList<>());
         this.setId(this.generateId());
     }
 
-    public Room(Hotel hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
-                boolean isBooked, Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability,
-                double pricePerNight, ArrayList<Reservation> inReservations) {
+    public Room(Integer hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
+                boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
+                double pricePerNight, ArrayList<Integer> inReservations) {
         this.setHotel(hotel);
         this.setType(type);
         this.setAmenities(amenities);
@@ -69,36 +73,15 @@ public class Room {
 
     @JsonCreator
     public Room(@JsonProperty("id") int id,
-                @JsonProperty("hotel") Hotel hotel,
+                @JsonProperty("hotel") Integer hotel,
                 @JsonProperty("type") RoomType type,
                 @JsonProperty("amenities") ArrayList<String> amenities,
                 @JsonProperty("maximumOccupancy") int maximumOccupancy,
                 @JsonProperty("pricePerNight") double pricePerNight,
                 @JsonProperty("totalPrice") double totalPrice,
                 @JsonProperty("isBooked") boolean isBooked,
-                @JsonProperty("bookingAvailability") Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability) {
-        this.setId(id);
-        this.setHotel(hotel);
-        this.setType(type);
-        this.setAmenities(amenities);
-        this.setMaximumOccupancy(maximumOccupancy);
-        this.setPricePerNight(pricePerNight);
-        this.setTotalPrice(totalPrice);
-        this.setBooked(isBooked);
-        this.setBookingAvailability(bookingAvailability);
-        this.setInReservations(new ArrayList<>());
-    }
-
-    public Room(int id,
-                Hotel hotel,
-                RoomType type,
-                ArrayList<String> amenities,
-                int maximumOccupancy,
-                double pricePerNight,
-                double totalPrice,
-                boolean isBooked,
-                Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailability,
-                ArrayList<Reservation> inReservations) {
+                @JsonProperty("bookingAvailability") Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
+                @JsonProperty("inReservations") ArrayList<Integer> inReservations) {
         this.setId(id);
         this.setHotel(hotel);
         this.setType(type);
@@ -120,12 +103,12 @@ public class Room {
         this.id = id;
     }
 
-    public Hotel getHotel() {
+    public Integer getHotel() {
         return hotel;
     }
 
     @JsonSetter("hotel")
-    public void setHotel(Hotel hotel) {
+    public void setHotel(Integer hotel) {
         this.hotel = hotel;
     }
 
@@ -183,30 +166,40 @@ public class Room {
         this.isBooked = booked;
     }
 
-    public Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> isCurrentlyAvailable() {
+    public Map<Boolean, ArrayList<LocalDateTime>> getBookingAvailability() {
         return bookingAvailability;
     }
 
     @JsonSetter("bookingAvailability")
-    public void setBookingAvailability(Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> booked) {
-        bookingAvailability = booked;
+    public void setBookingAvailability(Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability) {
+        this.bookingAvailability = bookingAvailability;
     }
 
-    public ArrayList<Reservation> getInReservations() {
+    public ArrayList<Integer> getInReservations() {
         return inReservations;
     }
 
-    public void setInReservations(ArrayList<Reservation> inReservations) {
+    @JsonSetter("inReservations")
+    public void setInReservations(ArrayList<Integer> inReservations) {
         this.inReservations = inReservations;
     }
 
     @Override
     public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setDateFormat(new StdDateFormat().withColonInTimeZone(true));
+
         try {
-            return new ObjectMapper().writeValueAsString(this);
+            return mapper.writeValueAsString(this);
         } catch (JsonProcessingException ex) {
-            ex.fillInStackTrace();
+            ex.printStackTrace();
             return "{}";
         }
+    }
+
+    public static void main(String[] args) {
+        Room r = new Room();
+        System.out.println(r);
     }
 }

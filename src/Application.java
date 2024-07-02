@@ -1,10 +1,17 @@
 import controllers.HotelController;
 import controllers.UserController;
 import models.Hotel;
+import models.Reservation;
 import models.Room;
 import models.User;
+import readersWriters.HotelReaderWriter;
+import readersWriters.RoomReaderWriter;
 import types.RoomType;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
@@ -61,41 +68,74 @@ public class Application {
 
     private static Hotel initHotel() {
         Hotel myHotel = new Hotel("Petya's Hotel", "Malina str. 8, Town-City", new ArrayList<>());
-        Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> bookingAvailabilities = new HashMap<>(){};
+        Map<Boolean, ArrayList<LocalDateTime>> bookingAvailabilities = new HashMap<>(){};
         LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0, 0);
         LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0, 0);
-        bookingAvailabilities.put(new AbstractMap.SimpleEntry<>(startDate, endDate), true);
+        ArrayList<LocalDateTime> dates = new ArrayList<>();
+        dates.add(startDate);
+        dates.add(endDate);
+        bookingAvailabilities.put(true, dates);
+        bookingAvailabilities.put(false, new ArrayList<>());
         ArrayList<String> amenities = new ArrayList<>();
         amenities.add("TV");
         amenities.add("Air conditioning");
         amenities.add("Refrigerator");
         amenities.add("Balcony");
 
-        Room room1 = new Room(1, myHotel, RoomType.SUITE, amenities, 2, 50.00, 100.00, false, bookingAvailabilities, new ArrayList<>()),
-                room2 = new Room(2, myHotel, RoomType.DELUXE, amenities, 5, 85.00, 420.00, false, bookingAvailabilities, new ArrayList<>()),
-                room3 = new Room(3, myHotel, RoomType.SINGLE, amenities, 1, 30.00, 30.00, false, bookingAvailabilities, new ArrayList<>()),
-                room4 = new Room(4, myHotel, RoomType.DOUBLE, amenities, 2, 45.00, 90.00, false, bookingAvailabilities, new ArrayList<>()),
-                room5 = new Room(5, myHotel, RoomType.SUITE, amenities, 2, 35.00, 70.00, false, bookingAvailabilities, new ArrayList<>());
+        Room room1 = new Room(1, myHotel.getId(), RoomType.SUITE, amenities, 2, 50.00, 100.00, false, bookingAvailabilities, new ArrayList<>()),
+                room2 = new Room(2, myHotel.getId(), RoomType.DELUXE, amenities, 5, 85.00, 420.00, false, bookingAvailabilities, new ArrayList<>()),
+                room3 = new Room(3, myHotel.getId(), RoomType.SINGLE, amenities, 1, 30.00, 30.00, false, bookingAvailabilities, new ArrayList<>()),
+                room4 = new Room(4, myHotel.getId(), RoomType.DOUBLE, amenities, 2, 45.00, 90.00, false, bookingAvailabilities, new ArrayList<>()),
+                room5 = new Room(5, myHotel.getId(), RoomType.SUITE, amenities, 2, 35.00, 70.00, false, bookingAvailabilities, new ArrayList<>());
 
-        myHotel.getAllRooms().add(room1);
-        myHotel.getAllRooms().add(room2);
-        myHotel.getAllRooms().add(room3);
-        myHotel.getAllRooms().add(room4);
-        myHotel.getAllRooms().add(room5);
+        myHotel.getAllRooms().add(room1.getId());
+        myHotel.getAllRooms().add(room2.getId());
+        myHotel.getAllRooms().add(room3.getId());
+        myHotel.getAllRooms().add(room4.getId());
+        myHotel.getAllRooms().add(room5.getId());
+
+        RoomReaderWriter rrw = new RoomReaderWriter();
+        File rfile = new File(Application.roomsFilename);
+        try(FileWriter fw = new FileWriter(rfile)) {
+            rrw.write(room1, Application.roomsFilename);
+            rrw.write(room2, Application.roomsFilename);
+            rrw.write(room3, Application.roomsFilename);
+            rrw.write(room4, Application.roomsFilename);
+            rrw.write(room5, Application.roomsFilename);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+        }
+
+        HotelReaderWriter hrw = new HotelReaderWriter();
+        File hfile = new File(Application.hotelsFilename);
+        try(FileWriter fw = new FileWriter(hfile)) {
+            hrw.write(myHotel, Application.hotelsFilename);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+        }
 
         return myHotel;
     }
 
-    private static void viewRooms() {
-        // TODO: to implement it
-        Hotel myHotel = initHotel();
+    private static void viewRooms(Hotel myHotel) {
+        RoomReaderWriter rrw = new RoomReaderWriter();
+        File file = new File(Application.roomsFilename);
+        Room room;
 
-        /*RoomReaderWriter roomRW = new RoomReaderWriter();
-        for(Room room : myHotel.getAllRooms()) {
-            roomRW.write(room, Application.roomsFilename);
+        try(FileReader fr = new FileReader(file)) {
+            for(Integer roomId : myHotel.getAllRooms()) {
+                room = rrw.read(fr, file);
+                if(room.equals(new Room())) {
+                    System.out.println("There is no read room!");
+                    break;
+                }
+                if (!room.isBooked() && room.getId() == roomId) {
+                    System.out.println(room);
+                }
+            }
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
         }
-        HotelReaderWriter hotelRW = new HotelReaderWriter();
-        hotelRW.write(myHotel, Application.hotelsFilename);*/
 
         hotelController.viewAllRooms(myHotel);
     }
@@ -143,7 +183,7 @@ public class Application {
         Scanner scanner = new Scanner(System.in);
         switch (command) {
             case "View Rooms" -> {
-                viewRooms();
+                viewRooms(hotel);
             }
             case "Book a Room" -> {
                 bookRoom(hotel, currentUser);
@@ -154,17 +194,19 @@ public class Application {
                 String bookingId = scanner.nextLine();
                 cancelBooking(bookingId);
             }
-            case "Log Out" -> {
+            case "Log Out", "END" -> {
                 System.out.println("Goodbye... You had been successfully logged out!");
                 System.exit(0);
-                return;
+            }
+            default -> {
+                System.exit(0);
             }
         }
     }
 
     public static void main(String[] args) {
         Hotel hotel = initHotel();
-        System.out.println("Welcome to Hotel models.Room models.Reservation System!");
+        System.out.println("Welcome to Hotel Reservation System!");
         System.out.println("If you are registered, please enter \"Login\"," +
                 "\nif you are not registered, please enter \"Register\"!");
 
@@ -198,11 +240,8 @@ public class Application {
                         } while (!option.equals("View Rooms") &&
                                 !option.equals("Book a Room") && !option.equals("Cancel Booking") &&
                                 !option.equals("Log Out") && !option.equals("END"));
-                        if(option.equals("END")) {
-                            break;
-                        }
                         executeCommand(option, hotel, loggedIn);
-                    } while (true);
+                    } while (!option.equals("END"));
                 } else {
                     System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
                 }

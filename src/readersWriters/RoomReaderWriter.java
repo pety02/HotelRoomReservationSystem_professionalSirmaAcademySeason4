@@ -36,6 +36,7 @@ public class RoomReaderWriter implements IReadableWritable<Room> {
             Room room = new Room();
             while (readByte > -1) {
                 if((char) readByte == '\n') {
+                    System.out.println(sb.toString());
                     room = RoomReaderWriter.parse(sb.substring(0,sb.length() - 1));
                     readByte = fr.read();
                     sb.append((char)readByte);
@@ -47,6 +48,7 @@ public class RoomReaderWriter implements IReadableWritable<Room> {
             return room;
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            ex.printStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
             return new Room();
         }

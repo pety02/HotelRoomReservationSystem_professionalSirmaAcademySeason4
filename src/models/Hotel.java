@@ -6,17 +6,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 
-@JsonPropertyOrder({"id", "name", "address", "incomes"})
+@JsonPropertyOrder({"id", "name", "address", "allRooms", "bookedRooms", "incomes"})
 @JsonRootName("Hotel")
 public class Hotel {
     private static int hotelNo;
     private int id;
     private String name;
     private String address;
-    @JsonIgnore
-    private ArrayList<Room> allRooms;
-    @JsonIgnore
-    private ArrayList<Room> bookedRooms;
+    private ArrayList<Integer> allRooms;
+    private ArrayList<Integer> bookedRooms;
     private double incomes;
 
     private int generateId() {
@@ -30,7 +28,11 @@ public class Hotel {
         this.setId(this.generateId());
         this.setName(name);
         this.setAddress(address);
-        this.setAllRooms(allRooms);
+        ArrayList<Integer> rids = new ArrayList<>();
+        for(Room room : allRooms) {
+            rids.add(room.getId());
+        }
+        this.setAllRooms(rids);
         this.setBookedRooms(new ArrayList<>());
         this.setIncomes(0.0);
     }
@@ -39,21 +41,9 @@ public class Hotel {
     public Hotel(@JsonProperty("id") int id,
                  @JsonProperty("name") String name,
                  @JsonProperty("address") String address,
+                 @JsonProperty("allRooms") ArrayList<Integer> allRooms,
+                 @JsonProperty("bookedRooms") ArrayList<Integer> bookedRooms,
                  @JsonProperty("incomes") double incomes) {
-        this.setId(id);
-        this.setName(name);
-        this.setAddress(address);
-        this.setAllRooms(new ArrayList<>());
-        this.setBookedRooms(new ArrayList<>());
-        this.setIncomes(incomes);
-    }
-
-    public Hotel(int id,
-                 String name,
-                 String address,
-                 ArrayList<Room> allRooms,
-                 ArrayList<Room> bookedRooms,
-                 double incomes) {
         this.setId(id);
         this.setName(name);
         this.setAddress(address);
@@ -89,19 +79,21 @@ public class Hotel {
         this.address = address;
     }
 
-    public ArrayList<Room> getAllRooms() {
+    public ArrayList<Integer> getAllRooms() {
         return allRooms;
     }
 
-    public void setAllRooms(ArrayList<Room> allRooms) {
+    @JsonSetter("allRooms")
+    public void setAllRooms(ArrayList<Integer> allRooms) {
         this.allRooms = allRooms;
     }
 
-    public ArrayList<Room> getBookedRooms() {
+    public ArrayList<Integer> getBookedRooms() {
         return bookedRooms;
     }
 
-    public void setBookedRooms(ArrayList<Room> bookedRooms) {
+    @JsonSetter("bookedRooms")
+    public void setBookedRooms(ArrayList<Integer> bookedRooms) {
         this.bookedRooms = bookedRooms;
     }
 
@@ -122,5 +114,10 @@ public class Hotel {
             ex.fillInStackTrace();
             return "{}";
         }
+    }
+
+    public static void main(String[] args) {
+        Hotel h = new Hotel();
+        System.out.println(h);
     }
 }

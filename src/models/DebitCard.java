@@ -3,11 +3,16 @@ package models;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.util.StdDateFormat;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import utils.LocalDateTimeMapDeserializer;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Random;
 
-@JsonPropertyOrder({"id", "iban", "creationDate", "expirationDate", "balance"})
+@JsonPropertyOrder({"id", "iban", "creationDate", "expirationDate", "balance", "owner"})
 @JsonRootName("DebitCard")
 public class DebitCard {
     private static int debitCardNo = 0;
@@ -16,8 +21,7 @@ public class DebitCard {
     private LocalDateTime creationDate;
     private LocalDateTime expirationDate;
     private double balance;
-    @JsonIgnore
-    private User owner;
+    private Integer owner;
 
     private int generateId() {
         // It is the good way only for learning purposes because
@@ -44,7 +48,7 @@ public class DebitCard {
                 now.getHour(), now.getMinute(), now.getSecond());
         this.setCreationDate(now);
         this.setExpirationDate(afterFourYears);
-        this.setOwner(null);
+        this.setOwner(0);
         this.setId(this.generateId());
     }
 
@@ -57,7 +61,7 @@ public class DebitCard {
                 now.getHour(), now.getMinute(), now.getSecond());
         this.setCreationDate(now);
         this.setExpirationDate(afterFourYears);
-        this.setOwner(owner);
+        this.setOwner(owner.getId());
         this.setId(this.generateId());
     }
 
@@ -67,7 +71,7 @@ public class DebitCard {
                      @JsonProperty("creationDate") LocalDateTime creationDate,
                      @JsonProperty("expirationDate") LocalDateTime expirationDate,
                      @JsonProperty("balance") double balance,
-                     User owner) {
+                     @JsonProperty("owner") Integer owner) {
         this.setId(id);
         this.setIban(iban);
         this.setBalance(balance);
@@ -121,21 +125,34 @@ public class DebitCard {
         this.balance = balance;
     }
 
-    public User getOwner() {
+    public Integer getOwner() {
         return owner;
     }
 
-    public void setOwner(User owner) {
+    @JsonSetter("owner")
+    public void setOwner(Integer owner) {
         this.owner = owner;
     }
 
     @Override
     public String toString() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setDateFormat(new StdDateFormat().withColonInTimeZone(true));
+        SimpleModule module = new SimpleModule();
+        module.addDeserializer(Map.class, new LocalDateTimeMapDeserializer());
+        mapper.registerModule(module);
+
         try {
-            return new ObjectMapper().writeValueAsString(this);
+            return mapper.writeValueAsString(this);
         } catch (JsonProcessingException ex) {
             ex.fillInStackTrace();
             return "{}";
         }
+    }
+
+    public static void main(String[] args) {
+        DebitCard dc = new DebitCard();
+        System.out.println(dc);
     }
 }
