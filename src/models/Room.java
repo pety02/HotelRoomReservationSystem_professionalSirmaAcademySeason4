@@ -2,19 +2,12 @@ package models;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import types.RoomType;
-import utils.LocalDateTimeMapDeserializer;
-import utils.LocalDateTimeMapEntryDeserializer;
-import utils.LocalDateTimeMapEntrySerializer;
-import utils.LocalDateTimeMapSerializer;
-
 import java.time.LocalDateTime;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +15,7 @@ import java.util.Map;
 @JsonPropertyOrder({"id", "hotel", "type", "amenities", "maximumOccupancy",
         "pricePerNight", "totalPrice", "isBooked", "bookingAvailability", "inReservations"})
 @JsonRootName("Room")
-public class Room {
+public class Room implements Comparable<Room> {
     private static int roomNo = 0;
     private int id;
     private Integer hotel;
@@ -201,5 +194,10 @@ public class Room {
     public static void main(String[] args) {
         Room r = new Room();
         System.out.println(r);
+    }
+
+    @Override
+    public int compareTo(Room o) {
+        return 0;
     }
 }

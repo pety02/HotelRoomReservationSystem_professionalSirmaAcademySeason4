@@ -6,8 +6,12 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.*;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
+import readersWriters.ReservationReaderWriter;
 import utils.LocalDateTimeMapDeserializer;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -16,10 +20,12 @@ import java.util.Map;
 
 @JsonPropertyOrder({"id", "fromDate", "toDate", "rooms", "bookedBy", "cancellationFees", "totalPrice", "isCancelled"})
 @JsonRootName("Reservation")
-public class Reservation {
+public class Reservation implements Comparable<Reservation> {
     private static int reservationNo = 0;
     private int id;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime fromDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime toDate;
     private Map<Integer, Double> rooms;
     private int bookedBy;
@@ -55,7 +61,8 @@ public class Reservation {
         this.setRooms(rooms);
         this.setBookedBy(bookedBy.getId());
         this.setCancellationFees(cancellationFees);
-        this.setTotalPrice(this.calculateTotalPrice());
+        int days = toDate.getDayOfYear() - fromDate.getDayOfYear();
+        this.setTotalPrice(this.calculateTotalPrice(days));
         this.setCancelled(isCancelled);
         this.setId(this.generateId());
     }
@@ -70,7 +77,8 @@ public class Reservation {
         this.setRooms(new HashMap<>());
         this.setBookedBy(0);
         this.setCancellationFees(cancellationFees);
-        this.setTotalPrice(0.0);
+        int days = toDate.getDayOfYear() - fromDate.getDayOfYear();
+        this.setTotalPrice(this.calculateTotalPrice(days));
         this.setCancelled(isCancelled);
     }
 
@@ -165,10 +173,10 @@ public class Reservation {
         isCancelled = cancelled;
     }
 
-    public double calculateTotalPrice() {
+    public double calculateTotalPrice(int days) {
         double total = 0.0;
         for (Map.Entry<Integer, Double> bookedRoom : this.rooms.entrySet()) {
-            total += bookedRoom.getValue();
+            total += (bookedRoom.getValue() * days);
         }
 
         return total;
@@ -194,5 +202,24 @@ public class Reservation {
     public static void main(String[] args) {
         Reservation r = new Reservation(LocalDateTime.of(2024,7,2,10,30), LocalDateTime.of(2024,7,5,12,30), 100.00, false);
         System.out.println(r);
+        ReservationReaderWriter rrw=  new ReservationReaderWriter();
+        rrw.write(r, "reservations.txt");
+
+        ArrayList<Reservation> ls = new ArrayList<>();
+        File f = new File("reservations.txt");
+        try(FileReader fr = new FileReader(f)) {
+            ls = rrw.read(fr, f);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+            ex.printStackTrace();
+        }
+        for(Reservation c : ls) {
+            System.out.println(c);
+        }
+    }
+
+    @Override
+    public int compareTo(Reservation o) {
+        return 0;
     }
 }

@@ -6,6 +6,7 @@ import readersWriters.UserReaderWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.ArrayList;
 
 public class UserCredentialsValidator {
     private static final String usersFilename = "users.txt";
@@ -16,11 +17,13 @@ public class UserCredentialsValidator {
             int index = 0;
             File file = new File(UserCredentialsValidator.usersFilename);
             FileReader fr = new FileReader(file);
-            User readUser = new User();
+            ArrayList<User> readUsers;
             do {
-                readUser = urw.read(fr, file);
-                if(readUser == null || readUser.getUsername().equals(username)) {
-                    return false;
+                readUsers = urw.read(fr, file);
+                for(User usr : readUsers) {
+                    if(usr == null || username.equals(usr.getUsername())) {
+                        return false;
+                    }
                 }
             } while (file.canRead());
         } catch (FileNotFoundException ex) {

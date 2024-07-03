@@ -2,11 +2,14 @@ package readersWriters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import interfaces.IReadableWritable;
+import models.DebitCard;
 import models.Hotel;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-public class HotelReaderWriter implements IReadableWritable<Hotel> {
+public class HotelReaderWriter extends ReaderWriter<Hotel>  {
 
     private static Hotel parse(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -29,9 +32,10 @@ public class HotelReaderWriter implements IReadableWritable<Hotel> {
     }
 
     @Override
-    public Hotel read(FileReader fr, File file) {
+    public ArrayList<Hotel> read(FileReader fr, File file) {
         StringBuilder sb = new StringBuilder();
         int readByte;
+        ArrayList<Hotel> hotels = new ArrayList<>();
         try {
             readByte = fr.read();
             sb.append((char)readByte);
@@ -39,18 +43,17 @@ public class HotelReaderWriter implements IReadableWritable<Hotel> {
             while (readByte > -1) {
                 if((char) readByte == '\n') {
                     hotel = HotelReaderWriter.parse(sb.substring(0,sb.length() - 1));
-                    readByte = fr.read();
-                    sb.append((char)readByte);
+                    hotels.add(hotel);
+                    sb = new StringBuilder();
                 }
                 readByte = fr.read();
                 sb.append((char)readByte);
             }
-
-            return hotel;
         } catch (IOException ex) {
             ex.fillInStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
-            return new Hotel();
         }
+
+        return hotels;
     }
 }

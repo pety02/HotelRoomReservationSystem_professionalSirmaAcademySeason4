@@ -1,15 +1,19 @@
 package readersWriters;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import interfaces.IReadableWritable;
 import models.DebitCard;
 
+import java.util.*;
 import java.io.*;
 
-public class DebitCardReaderWriter implements IReadableWritable<DebitCard> {
+public class DebitCardReaderWriter extends ReaderWriter<DebitCard> {
 
     private static DebitCard parse(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
         DebitCard obj = mapper.reader().readValue(json, DebitCard.class);
         if(obj == null) {
             System.out.println("Cannot parse object!");
@@ -29,28 +33,20 @@ public class DebitCardReaderWriter implements IReadableWritable<DebitCard> {
     }
 
     @Override
-    public DebitCard read(FileReader fr, File file) {
-        StringBuilder sb = new StringBuilder();
-        int readByte;
-        try {
-            readByte = fr.read();
-            sb.append((char)readByte);
-            DebitCard debitCard = new DebitCard();
-            while (readByte > -1) {
-                if((char) readByte == '\n') {
-                    debitCard = DebitCardReaderWriter.parse(sb.substring(0,sb.length() - 1));
-                    readByte = fr.read();
-                    sb.append((char)readByte);
-                }
-                readByte = fr.read();
-                sb.append((char)readByte);
+    public ArrayList<DebitCard> read(FileReader fr, File file) {
+        ArrayList<DebitCard> cards = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(fr)) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                DebitCard debitCard = parse(line);
+                cards.add(debitCard);
             }
-
-            return debitCard;
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            ex.printStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
-            return new DebitCard();
         }
+
+        return cards;
     }
 }

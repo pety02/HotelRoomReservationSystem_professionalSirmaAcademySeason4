@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 @JsonPropertyOrder({"id", "name", "address", "allRooms", "bookedRooms", "incomes"})
 @JsonRootName("Hotel")
-public class Hotel {
+public class Hotel implements Comparable<Hotel> {
     private static int hotelNo;
     private int id;
     private String name;
@@ -119,5 +119,10 @@ public class Hotel {
     public static void main(String[] args) {
         Hotel h = new Hotel();
         System.out.println(h);
+    }
+
+    @Override
+    public int compareTo(Hotel o) {
+        return 0;
     }
 }

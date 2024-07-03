@@ -1,7 +1,10 @@
 <component name="libraryTable">
   <library name="jackson-annotations-2.17.1">
     <CLASSES>
-      <root url="jar://$USER_HOME$/Downloads/jackson-annotations-2.17.1.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/jackson-annotations-2.17.1.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/jackson-core-2.17.1.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/jackson-databind-2.17.1.jar!/" />
+      <root url="jar://$USER_HOME$/Desktop/jackson-datatype-jsr310-2.17.1.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

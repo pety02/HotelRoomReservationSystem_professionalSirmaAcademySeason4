@@ -9,7 +9,7 @@ import models.User;
 import java.io.*;
 import java.util.ArrayList;
 
-public class UserReaderWriter implements IReadableWritable<User> {
+public class UserReaderWriter extends ReaderWriter<User> {
 
     private static User parse(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
@@ -32,9 +32,10 @@ public class UserReaderWriter implements IReadableWritable<User> {
     }
 
     @Override
-    public User read(FileReader fr, File file) {
+    public ArrayList<User> read(FileReader fr, File file) {
         StringBuilder sb = new StringBuilder();
         int readByte;
+        ArrayList<User> users = new ArrayList<>();
         try {
             readByte = fr.read();
             sb.append((char)readByte);
@@ -42,19 +43,18 @@ public class UserReaderWriter implements IReadableWritable<User> {
             while (readByte > -1) {
                 if((char) readByte == '\n') {
                     user = UserReaderWriter.parse(sb.substring(0,sb.length() - 1));
-                    readByte = fr.read();
-                    sb.append((char)readByte);
+                    users.add(user);
+                    sb = new StringBuilder();
                 }
                 readByte = fr.read();
                 sb.append((char)readByte);
             }
-
-            return user;
         } catch (IOException ex) {
             ex.fillInStackTrace();
             ex.printStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
-            return new User();
         }
+
+        return users;
     }
 }

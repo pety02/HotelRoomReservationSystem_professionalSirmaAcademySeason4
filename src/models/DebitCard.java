@@ -6,15 +6,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import readersWriters.DebitCardReaderWriter;
 import utils.LocalDateTimeMapDeserializer;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 
 @JsonPropertyOrder({"id", "iban", "creationDate", "expirationDate", "balance", "owner"})
 @JsonRootName("DebitCard")
-public class DebitCard {
+public class DebitCard implements Comparable<DebitCard> {
     private static int debitCardNo = 0;
     private int id;
     private String iban;
@@ -52,7 +57,20 @@ public class DebitCard {
         this.setId(this.generateId());
     }
 
-    public DebitCard(String iban, double balance, User owner) {
+    public DebitCard(double balance, Integer owner) {
+        this.setIban(this.generateIBAN());
+        this.setBalance(balance);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime afterFourYears = LocalDateTime.of(
+                now.getYear() + 4, now.getMonth(), now.getDayOfMonth(),
+                now.getHour(), now.getMinute(), now.getSecond());
+        this.setCreationDate(now);
+        this.setExpirationDate(afterFourYears);
+        this.setOwner(owner);
+        this.setId(this.generateId());
+    }
+
+    public DebitCard(String iban, double balance, Integer owner) {
         this.setIban(iban);
         this.setBalance(balance);
         LocalDateTime now = LocalDateTime.now();
@@ -61,7 +79,7 @@ public class DebitCard {
                 now.getHour(), now.getMinute(), now.getSecond());
         this.setCreationDate(now);
         this.setExpirationDate(afterFourYears);
-        this.setOwner(owner.getId());
+        this.setOwner(owner);
         this.setId(this.generateId());
     }
 
@@ -152,7 +170,32 @@ public class DebitCard {
     }
 
     public static void main(String[] args) {
-        DebitCard dc = new DebitCard();
-        System.out.println(dc);
+        // DebitCard dc = new DebitCard(1000.0, 1);
+        DebitCardReaderWriter drw = new DebitCardReaderWriter();
+        //drw.write(dc, "debitCards.txt");
+
+        ArrayList<DebitCard> ls = new ArrayList<>();
+        File f = new File("debitCards.txt");
+        try(FileReader fr = new FileReader(f)) {
+            ls = drw.read(fr, f);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+            ex.printStackTrace();
+        }
+        for(DebitCard c : ls) {
+            System.out.println(c);
+        }
+    }
+
+    @Override
+    public int compareTo(DebitCard o) {
+        if(this.getId() < o.getId()) {
+            return -1;
+        }
+        else if(this.getId() == o.getId()) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }

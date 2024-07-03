@@ -45,22 +45,26 @@ public class UserController implements IUserManageable {
         if(username.matches("^[a-zA-Z+0-9]{6,20}$")
                 && UserCredentialsValidator.isValidPassword(password)) {
             UserReaderWriter urw = new UserReaderWriter();
-            User readUser;
+            ArrayList<User> readUsers;
             File file = new File(UserController.usersFilename);
             try(FileReader fr = new FileReader(file)) {
-                readUser = urw.read(fr, file);
-                if (readUser == null) {
+                readUsers = urw.read(fr, file);
+                if (readUsers == null) {
                     System.out.println("There is no read users.");
                     return false;
                 } else {
-                    if (readUser.getUsername().equals(username) && readUser.getPassword().equals(password)) {
-                        loggedIn.setId(readUser.getId());
-                        loggedIn.setUsername(readUser.getUsername());
-                        loggedIn.setEmail(readUser.getEmail());
-                        return true;
-                    } else {
-                        return false;
+                    for(User usr : readUsers) {
+                        if (usr.getUsername().equals(username) && usr.getPassword().equals(password)) {
+                            loggedIn.setId(usr.getId());
+                            loggedIn.setUsername(usr.getUsername());
+                            loggedIn.setEmail(usr.getEmail());
+                            loggedIn.setReservations(usr.getReservations());
+                            loggedIn.setDebitCard(usr.getDebitCard());
+                            return true;
+                        }
                     }
+
+                    return false;
                 }
             } catch (IOException ex) {
                 ex.fillInStackTrace();
@@ -83,24 +87,25 @@ public class UserController implements IUserManageable {
         System.out.println();
         ArrayList<Reservation> allReservations = new ArrayList<>();
         ReservationReaderWriter rrw = new ReservationReaderWriter();
-        Reservation readReservation;
 
         File file = new File(UserController.reservationsFilename);
-        ArrayList<Reservation> currentUserReservations = new ArrayList<>();
+        ArrayList<Reservation> readReservations = new ArrayList<>();
         try(FileReader fr = new FileReader(file)) {
-            readReservation = rrw.read(fr, file);
-            if (readReservation == null) {
+            readReservations = rrw.read(fr, file);
+            if (readReservations == null) {
                 System.out.println("There is no read reservations.");
             } else {
-                if (readReservation.getBookedBy() == currentUser.getId()) {
-                    currentUserReservations.add(readReservation);
+                for(Reservation reservation : readReservations) {
+                    if (reservation.getBookedBy() == currentUser.getId()) {
+                        readReservations.add(reservation);
+                    }
                 }
             }
         } catch (IOException ex) {
             ex.fillInStackTrace();
         }
 
-        for(Reservation currentReservation : currentUserReservations) {
+        for(Reservation currentReservation : readReservations) {
             System.out.println(currentReservation);
         }
     }

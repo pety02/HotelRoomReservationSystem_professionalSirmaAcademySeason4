@@ -17,7 +17,7 @@ import java.util.Map;
 
 @JsonPropertyOrder({"id", "username", "email", "password"})
 @JsonRootName("User")
-public class User {
+public class User implements Comparable<User> {
     private static int userNo = 0;
     private int id;
     private String username;
@@ -192,5 +192,10 @@ public class User {
     public static void main(String[] args) {
         User u =  new User("petya123", "petyata@abv.bg", "petya123");
         System.out.println(u);
+    }
+
+    @Override
+    public int compareTo(User o) {
+        return 0;
     }
 }

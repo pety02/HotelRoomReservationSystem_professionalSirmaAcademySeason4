@@ -1,7 +1,6 @@
 import controllers.HotelController;
 import controllers.UserController;
 import models.Hotel;
-import models.Reservation;
 import models.Room;
 import models.User;
 import readersWriters.HotelReaderWriter;
@@ -118,25 +117,6 @@ public class Application {
     }
 
     private static void viewRooms(Hotel myHotel) {
-        RoomReaderWriter rrw = new RoomReaderWriter();
-        File file = new File(Application.roomsFilename);
-        Room room;
-
-        try(FileReader fr = new FileReader(file)) {
-            for(Integer roomId : myHotel.getAllRooms()) {
-                room = rrw.read(fr, file);
-                if(room.equals(new Room())) {
-                    System.out.println("There is no read room!");
-                    break;
-                }
-                if (!room.isBooked() && room.getId() == roomId) {
-                    System.out.println(room);
-                }
-            }
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-        }
-
         hotelController.viewAllRooms(myHotel);
     }
 
