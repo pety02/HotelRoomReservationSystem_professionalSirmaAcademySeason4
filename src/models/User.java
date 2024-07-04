@@ -196,6 +196,6 @@ public class User implements Comparable<User> {
 
     @Override
     public int compareTo(User o) {
-        return 0;
+        return Integer.compare(this.getId(), o.getId());
     }
 }

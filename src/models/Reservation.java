@@ -220,6 +220,6 @@ public class Reservation implements Comparable<Reservation> {
 
     @Override
     public int compareTo(Reservation o) {
-        return 0;
+        return Integer.compare(this.getId(), o.getId());
     }
 }

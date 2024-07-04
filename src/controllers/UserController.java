@@ -11,9 +11,10 @@ import validators.UserCredentialsValidator;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class UserController implements IUserManageable {
     private final static String usersFilename = "users.txt";
@@ -49,26 +50,23 @@ public class UserController implements IUserManageable {
             File file = new File(UserController.usersFilename);
             try(FileReader fr = new FileReader(file)) {
                 readUsers = urw.read(fr, file);
-                if (readUsers == null) {
+                if (readUsers.isEmpty()) {
                     System.out.println("There is no read users.");
-                    return false;
                 } else {
                     for(User usr : readUsers) {
                         if (usr.getUsername().equals(username) && usr.getPassword().equals(password)) {
                             loggedIn.setId(usr.getId());
                             loggedIn.setUsername(usr.getUsername());
                             loggedIn.setEmail(usr.getEmail());
+                            loggedIn.setPassword(usr.getPassword(), false);
                             loggedIn.setReservations(usr.getReservations());
                             loggedIn.setDebitCard(usr.getDebitCard());
                             return true;
                         }
                     }
-
-                    return false;
                 }
-            } catch (IOException ex) {
+            } catch (IOException | InvalidKeySpecException | NoSuchAlgorithmException ex) {
                 ex.fillInStackTrace();
-                return false;
             }
         }
         return false;
@@ -85,28 +83,25 @@ public class UserController implements IUserManageable {
         System.out.println("All reservations:");
         System.out.println("------------------");
         System.out.println();
-        ArrayList<Reservation> allReservations = new ArrayList<>();
         ReservationReaderWriter rrw = new ReservationReaderWriter();
 
         File file = new File(UserController.reservationsFilename);
-        ArrayList<Reservation> readReservations = new ArrayList<>();
+        ArrayList<Reservation> readReservations;
         try(FileReader fr = new FileReader(file)) {
             readReservations = rrw.read(fr, file);
-            if (readReservations == null) {
+            if (readReservations.isEmpty()) {
                 System.out.println("There is no read reservations.");
             } else {
                 for(Reservation reservation : readReservations) {
                     if (reservation.getBookedBy() == currentUser.getId()) {
-                        readReservations.add(reservation);
+                        System.out.printf("From: %s | To: %s | Total price: %.2f$ | Status: %s%n",
+                                reservation.getFromDate(), reservation.getToDate(),
+                                reservation.getTotalPrice(), reservation.isCancelled() ? "cancelled" : "active");
                     }
                 }
             }
         } catch (IOException ex) {
             ex.fillInStackTrace();
-        }
-
-        for(Reservation currentReservation : readReservations) {
-            System.out.println(currentReservation);
         }
     }
 

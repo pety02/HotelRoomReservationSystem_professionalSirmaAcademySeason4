@@ -123,6 +123,6 @@ public class Hotel implements Comparable<Hotel> {
 
     @Override
     public int compareTo(Hotel o) {
-        return 0;
+        return Integer.compare(this.getId(), o.getId());
     }
 }

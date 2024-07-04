@@ -44,7 +44,7 @@ public class Application {
         String[] credentials = new String[2];
         Scanner scanner = new Scanner(System.in);
 
-        System.out.println("Hotel models.Room models.Reservation System");
+        System.out.println("Hotel Room Reservation System");
         System.out.println("-----------------------------");
         System.out.println("Login Form:");
         System.out.print("*Username: ");
@@ -155,8 +155,9 @@ public class Application {
         }
     }
 
-    private static void cancelBooking(String bookingId) {
+    private static void cancelBooking(int bookingId, User loggedIn, Hotel currentHotel) {
         // TODO: to implement it
+        hotelController.cancelReservation(bookingId, loggedIn, currentHotel);
     }
 
     private static void executeCommand(String command, Hotel hotel, User currentUser) {
@@ -170,9 +171,10 @@ public class Application {
             }
             case "Cancel Booking" -> {
                 userController.showAllBookings(currentUser);
+                System.out.println("If you really want to cancel this reservation, you must pay cancellation fees!");
                 System.out.println("Enter booking id:");
-                String bookingId = scanner.nextLine();
-                cancelBooking(bookingId);
+                int bookingId = Integer.parseInt(scanner.nextLine());
+                cancelBooking(bookingId, currentUser, hotel);
             }
             case "Log Out", "END" -> {
                 System.out.println("Goodbye... You had been successfully logged out!");

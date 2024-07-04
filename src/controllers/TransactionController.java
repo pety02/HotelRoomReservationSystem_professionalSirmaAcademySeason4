@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class TransactionController implements ITransaction {
     private static final String debitCardsFilename = "debitCards.txt";
@@ -28,7 +27,7 @@ public class TransactionController implements ITransaction {
     }
 
     @Override
-    public void makeTransaction(int debitCardId, double moneyToBePayed) {
+    public boolean makeTransaction(int debitCardId, double moneyToBePayed) {
         DebitCardReaderWriter drw = new DebitCardReaderWriter();
         ArrayList<DebitCard> readDebitCards;
         File file = new File(TransactionController.debitCardsFilename);
@@ -38,14 +37,17 @@ public class TransactionController implements ITransaction {
                 if(card.getId() == debitCardId) {
                     double newBalance = card.getBalance() - moneyToBePayed;
                     card.setBalance(newBalance);
-                    System.out.printf("Your currently card balance: %s: %.2f%n", card.getIban(), card.getBalance());
+                    System.out.printf("You successfully have paid %.2f$!%n", card.getBalance());
                     double newHotelIncomes = this.hotel.getIncomes() + moneyToBePayed;
                     this.hotel.setIncomes(newHotelIncomes);
-                    System.out.printf("Hotel incomes: %s: %.2f%n", this.hotel.getName(), this.hotel.getIncomes());
+                    return true;
                 }
             }
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            return false;
         }
+
+        return false;
     }
 }

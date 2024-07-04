@@ -10,6 +10,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 
 public class HotelController implements IHotelMangeable {
@@ -18,6 +20,97 @@ public class HotelController implements IHotelMangeable {
     private final static String reservationsFilename = "reservations.txt";
     private final static String hotelsFilename = "hotels.txt";
     private final static String debitCardsFilename = "debitCards.txt";
+    private final static double fixedCancellationFee = 100;
+
+    private <T extends Comparable<T>> void rewrite(ArrayList<T> objs, String filename, Class<T> cl) throws RuntimeException {
+        ArrayList<T> readObjs = new ArrayList<>();
+        File file = new File(filename);
+        ReaderWriter<T> readerWriter;
+        if(cl == Room.class) {
+            readerWriter = (ReaderWriter<T>) new RoomReaderWriter();
+        } else if(cl == Hotel.class) {
+            readerWriter = (ReaderWriter<T>) new HotelReaderWriter();
+        } else if (cl == User.class) {
+            readerWriter = (ReaderWriter<T>) new UserReaderWriter();
+        } else if (cl == DebitCard.class) {
+            readerWriter = (ReaderWriter<T>) new DebitCardReaderWriter();
+        } else if (cl == Reservation.class) {
+            readerWriter = (ReaderWriter<T>) new ReservationReaderWriter();
+        } else {
+            throw new RuntimeException("Unknown abstract T type.");
+        }
+        try(FileReader fileReader = new FileReader(file)) {
+            readObjs = readerWriter.read(fileReader, file);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+        }
+
+        if(file.delete()) {
+            if(readObjs.isEmpty()) {
+                for(T obj : objs) {
+                    readerWriter.write(obj, filename);
+                }
+                return;
+            }
+            int changedNo = 0;
+            int index = 0;
+            for(T readObj : readObjs) {
+                for(T obj : objs) {
+                    if(readObj.compareTo(obj) == 0) {
+                        readerWriter.write(obj, filename);
+                        changedNo = index++;
+                        for (int i = 0; i < readObjs.size(); i++) {
+                            if(i == changedNo) {
+                                continue;
+                            }
+                            readerWriter.write(readObjs.get(i), filename);
+                        }
+                        break;
+                    }
+                    index++;
+                }
+                break;
+            }
+        }
+    }
+
+    private void rewriteFiles(ArrayList<Room> readRooms, Reservation reservation, Hotel currentHotel, User currentUser) {
+        rewrite(readRooms, HotelController.roomsFilename, Room.class);
+
+        ArrayList<Hotel> hotels = new ArrayList<>();
+        hotels.add(currentHotel);
+        rewrite(hotels, HotelController.hotelsFilename, Hotel.class);
+
+        reservation.setBookedBy(currentUser.getId());
+        ArrayList<Reservation> reservations = new ArrayList<>();
+        reservations.add(reservation);
+        rewrite(reservations, HotelController.reservationsFilename, Reservation.class);
+
+        HashMap<Integer, Double> userReservations = new HashMap<>();
+        userReservations.put(reservation.getId(), reservation.getTotalPrice());
+        currentUser.setReservations(userReservations);
+        currentUser.setDebitCard(Map.entry(currentUser.getDebitCard().getKey(), currentUser.getDebitCard().getValue() - reservation.getTotalPrice()));
+        ArrayList<User> users = new ArrayList<>();
+        users.add(currentUser);
+        rewrite(users, HotelController.usersFilename, User.class);
+
+        ArrayList<DebitCard> cards = new ArrayList<>();
+        DebitCardReaderWriter drw = new DebitCardReaderWriter();
+        File cardsFile = new File(HotelController.debitCardsFilename);
+        try(FileReader fileReader = new FileReader(cardsFile)) {
+            cards = drw.read(fileReader, cardsFile);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+        }
+        ArrayList<DebitCard> toBeReWrittenCards = new ArrayList<>();
+        for(DebitCard dc : cards) {
+            if(dc.getId() == currentUser.getDebitCard().getKey()) {
+                dc.setBalance(currentUser.getDebitCard().getValue());
+                toBeReWrittenCards.add(dc);
+            }
+        }
+        rewrite(toBeReWrittenCards, HotelController.debitCardsFilename, DebitCard.class);
+    }
 
     @Override
     public void viewAllRooms(Hotel currentHotel) {
@@ -109,80 +202,27 @@ public class HotelController implements IHotelMangeable {
                     reservation.getRooms().put(room.getId(), room.getTotalPrice());
                     int days = toDate.getDayOfYear() - fromDate.getDayOfYear();
                     reservation.setTotalPrice(reservation.calculateTotalPrice(days));
+                    room.getInReservations().add(reservation.getId());
 
                     if(bookedBy.getDebitCard().getValue() < reservation.getTotalPrice()) {
                         System.out.println("Sorry, but you haven't enough money! Try again later...");
                         return;
                     }
                     TransactionController tc = new TransactionController(currentHotel);
-                    tc.makeTransaction(bookedBy.getDebitCard().getKey(), reservation.getTotalPrice());
+                    if(tc.makeTransaction(bookedBy.getDebitCard().getKey(), reservation.getTotalPrice())) {
 
-                    rewrite(readRooms, HotelController.roomsFilename, Room.class);
+                        rewriteFiles(readRooms, reservation, currentHotel, bookedBy);
 
-                    ArrayList<Hotel> hotels = new ArrayList<>();
-                    hotels.add(currentHotel);
-                    rewrite(hotels, HotelController.hotelsFilename, Hotel.class);
-
-                    ArrayList<User> users = new ArrayList<>();
-                    users.add(bookedBy);
-                    rewrite(users, HotelController.usersFilename, User.class);
-
-                    ArrayList<Reservation> reservations = new ArrayList<>();
-                    reservations.add(reservation);
-                    rewrite(reservations, HotelController.reservationsFilename, Reservation.class);
-
-                    System.out.printf("Congratulations! You've just booked room with ID: %d%n", room.getId());
-                    isBooked = true;
-                    break;
+                        System.out.printf("Congratulations! You've just booked room with ID: %d%n", room.getId());
+                        isBooked = true;
+                        break;
+                    }
                 }
             }
         }
 
         if(!isBooked) {
-            System.out.println("Sorry but this room is not currently available!");
-        }
-    }
-
-    private <T extends Comparable<T>> void rewrite(ArrayList<T> objs, String filename, Class<T> cl) throws RuntimeException {
-        ArrayList<T> readObjs = new ArrayList<>();
-        File file = new File(filename);
-        ReaderWriter<T> readerWriter;
-        if(cl == Room.class) {
-            readerWriter = (ReaderWriter<T>) new RoomReaderWriter();
-        } else if(cl == Hotel.class) {
-            readerWriter = (ReaderWriter<T>) new HotelReaderWriter();
-        } else if (cl == User.class) {
-            readerWriter = (ReaderWriter<T>) new UserReaderWriter();
-        } else if (cl == DebitCard.class) {
-            readerWriter = (ReaderWriter<T>) new DebitCardReaderWriter();
-        } else if (cl == Reservation.class) {
-            readerWriter = (ReaderWriter<T>) new ReservationReaderWriter();
-        } else {
-            throw new RuntimeException("Unknown abstract T type.");
-        }
-        try(FileReader fileReader = new FileReader(file)) {
-            readObjs = readerWriter.read(fileReader, file);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            System.out.printf("Cannot read from file with name %s!%n", filename);
-        }
-
-        if(file.delete()) {
-            file = new File(filename);
-            try(FileWriter fw = new FileWriter(file)) {
-                for(T readObj : readObjs) {
-                    for(T obj : objs) {
-                        if(readObj.compareTo(obj) == 0) {
-                            readerWriter.write(obj, filename);
-                        } else {
-                            readerWriter.write(readObj, filename);
-                        }
-                    }
-                }
-            } catch (IOException ex) {
-                ex.fillInStackTrace();
-                System.out.printf("Cannot write in file with this name %s!%n", filename);
-            }
+            System.out.println("Sorry but the reservation was not successful!");
         }
     }
 
@@ -197,52 +237,47 @@ public class HotelController implements IHotelMangeable {
         } catch (IOException ex) {
             ex.fillInStackTrace();
         }
-        for (Integer currentRoomId : currentHotel.getBookedRooms()) {
-            if (readRooms.isEmpty()) {
-                break;
-            }
-            for (Room room : readRooms) {
-                for (var currentStatus : room.getBookingAvailability().entrySet()) {
-                    if (!currentStatus.getKey() && currentStatus.getValue().contains(now)) {
-                        currentStatus.getValue().add(now); // available for this period
-                        room.setBooked(false); // not booked room
 
-                        rewrite(readRooms, HotelController.roomsFilename, Room.class);
+        for (Room room : readRooms) {
+            for (var currentStatus : room.getBookingAvailability().entrySet()) {
+                if (!currentStatus.getKey() && currentStatus.getValue().contains(now)) {
+                    currentStatus.getValue().add(now); // available for this period
+                    room.setBooked(false); // not booked room
 
-                        ArrayList<Hotel> hotels = new ArrayList<>();
-                        hotels.add(currentHotel);
-                        rewrite(hotels, HotelController.hotelsFilename, Hotel.class);
+                    rewrite(readRooms, HotelController.roomsFilename, Room.class);
 
-                        ArrayList<Reservation> reservations = new ArrayList<>();
-                        ReservationReaderWriter reservrw = new ReservationReaderWriter();
-                        try(FileReader fr = new FileReader(HotelController.reservationsFilename)) {
-                            reservations = reservrw.read(fr, file);
-                        } catch (IOException ex) {
-                            ex.fillInStackTrace();
-                            System.out.printf("Cannot read from file with name %s!%n", HotelController.roomsFilename);
-                        }
+                    ArrayList<Hotel> hotels = new ArrayList<>();
+                    hotels.add(currentHotel);
+                    rewrite(hotels, HotelController.hotelsFilename, Hotel.class);
 
-                        ArrayList<Reservation> toBeReWritten = new ArrayList<>();
-                        for (Integer hotelReservationId : currentHotel.getBookedRooms()) {
-                            for (Reservation currReservation : reservations) {
-                                if (hotelReservationId == currReservation.getId()) {
-                                    toBeReWritten.add(currReservation);
-                                }
+                    ArrayList<Reservation> reservations = new ArrayList<>();
+                    ReservationReaderWriter reservrw = new ReservationReaderWriter();
+                    try(FileReader fr = new FileReader(HotelController.reservationsFilename)) {
+                        reservations = reservrw.read(fr, file);
+                    } catch (IOException ex) {
+                        ex.fillInStackTrace();
+                        System.out.printf("Cannot read from file with name %s!%n", HotelController.roomsFilename);
+                    }
+
+                    ArrayList<Reservation> toBeReWritten = new ArrayList<>();
+                    for (Integer hotelReservationId : currentHotel.getBookedRooms()) {
+                        for (Reservation currReservation : reservations) {
+                            if (hotelReservationId == currReservation.getId()) {
+                                toBeReWritten.add(currReservation);
                             }
                         }
-                        rewrite(toBeReWritten, HotelController.reservationsFilename, Reservation.class);
                     }
+                    rewrite(toBeReWritten, HotelController.reservationsFilename, Reservation.class);
                 }
             }
         }
     }
 
     @Override
-    public void cancelReservation(int reservationId, User currentUser) throws RuntimeException {
-        LocalDateTime now = LocalDateTime.now();
+    public void cancelReservation(int reservationId, User currentUser, Hotel currentHotel) throws RuntimeException {
         for (Map.Entry<Integer, Double> currentReservation : currentUser.getReservations().entrySet()) {
             if (currentReservation.getKey() == reservationId) {
-                double totalPrice = currentReservation.getValue();
+                double totalPrice = HotelController.fixedCancellationFee;
                 double userTotalMoney = currentUser.getDebitCard().getValue();
                 if (userTotalMoney < totalPrice) {
                     throw new RuntimeException("Sorry, you have enough money! You cannot cancel your reservation!");
@@ -250,7 +285,6 @@ public class HotelController implements IHotelMangeable {
 
                 ReservationReaderWriter rrw = new ReservationReaderWriter();
                 ArrayList<Reservation> readReservations;
-
                 File file = new File(HotelController.reservationsFilename);
                 try (FileReader fr = new FileReader(file)) {
                     readReservations = rrw.read(fr, file);
@@ -273,22 +307,31 @@ public class HotelController implements IHotelMangeable {
                                 } else {
                                     for (Room room : readRooms) {
                                         for (Map.Entry<Boolean, ArrayList<LocalDateTime>> isAvailable : room.getBookingAvailability().entrySet()) {
-                                            if (reservation.getId() == reservationId
+                                            if (reservation.getId() == cr
+                                                    && cr == reservationId
                                                     && reservation.getBookedBy() == currentUser.getId()
                                                     && isAvailable.getValue() == isAvailable.getValue()) {
                                                 room.setBooked(false);
                                                 reservation.setCancelled(true);
 
-                                                // TODO: to rewrite users.txt, reservations.txt, rooms.txt and hotel.txt
+                                                TransactionController tc = new TransactionController(currentHotel);
+                                                if(tc.makeTransaction(currentUser.getDebitCard().getKey(), totalPrice)) {
+                                                    rewriteFiles(readRooms, reservation, currentHotel, currentUser);
+                                                    System.out.println("Successful cancelled booking!");
+                                                    return;
+                                                }
                                             }
                                         }
                                     }
+
+                                    System.out.println("Sorry, but booking cancellation was not successful!");
                                 }
                             }
                         }
                     }
                 } catch (IOException ex) {
                     ex.fillInStackTrace();
+                    System.out.printf("Cannot read from file with name %s!%n", file.getName());
                 }
             }
         }
