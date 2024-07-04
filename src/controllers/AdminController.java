@@ -17,11 +17,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+/**
+ *
+ */
 public class AdminController implements IAdminManageable {
     private static final String hotelsFilename = "hotels.txt";
     private static final String reservationsFilename = "reservations.txt";
     private static final String roomsFilename = "rooms.txt";
 
+    /**
+     *
+     */
     @Override
     public void showAllHotels() {
         File file = new File(AdminController.hotelsFilename);
@@ -43,6 +49,10 @@ public class AdminController implements IAdminManageable {
         }
     }
 
+    /**
+     *
+     * @param hotelId
+     */
     @Override
     public void viewAllBookings(int hotelId) {
         File reservationFile = new File(AdminController.reservationsFilename);
@@ -79,6 +89,12 @@ public class AdminController implements IAdminManageable {
         }
     }
 
+    /**
+     *
+     * @param hotelId
+     * @return
+     * @throws RuntimeException
+     */
     @Override
     public double getTotalIncome(int hotelId) throws RuntimeException {
         File file = new File(AdminController.hotelsFilename);
@@ -100,6 +116,11 @@ public class AdminController implements IAdminManageable {
         throw new RuntimeException("Hotel not found!");
     }
 
+    /**
+     *
+     * @param hotelId
+     * @return
+     */
     @Override
     public double getCancellationFees(int hotelId) {
         File reservationFile = new File(AdminController.reservationsFilename);
@@ -136,6 +157,16 @@ public class AdminController implements IAdminManageable {
         return cancelledReservationsCount * HotelController.fixedCancellationFee;
     }
 
+    /**
+     *
+     * @param roomId
+     * @param hotelId
+     * @param type
+     * @param amenities
+     * @param maximumOccupancy
+     * @param pricePerNight
+     * @return
+     */
     @Override
     public boolean addRoom(int roomId, int hotelId, RoomType type, ArrayList<String> amenities, int maximumOccupancy, double pricePerNight) {
         HashMap<Boolean, ArrayList<LocalDateTime>> bookingAvailability = new HashMap<>();
@@ -146,6 +177,10 @@ public class AdminController implements IAdminManageable {
         return true;
     }
 
+    /**
+     *
+     * @param hotelId
+     */
     @Override
     public void showAllHotelRooms(int hotelId) {
         File roomsFile = new File(AdminController.roomsFilename);
@@ -167,6 +202,11 @@ public class AdminController implements IAdminManageable {
         }
     }
 
+    /**
+     *
+     * @param roomId
+     * @return
+     */
     @Override
     public boolean removeRoom(int roomId) {
         boolean found = false;
@@ -199,6 +239,16 @@ public class AdminController implements IAdminManageable {
         return found;
     }
 
+    /**
+     *
+     * @param roomId
+     * @param hotelId
+     * @param type
+     * @param amenities
+     * @param maximumOccupancy
+     * @param pricePerNight
+     * @return
+     */
     @Override
     public boolean updateRoom(int roomId, int hotelId, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
                               double pricePerNight) {

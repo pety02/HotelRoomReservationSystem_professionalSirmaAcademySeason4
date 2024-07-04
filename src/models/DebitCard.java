@@ -17,6 +17,9 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.Random;
 
+/**
+ *
+ */
 @JsonPropertyOrder({"id", "iban", "creationDate", "expirationDate", "balance", "owner"})
 @JsonRootName("DebitCard")
 public class DebitCard implements Comparable<DebitCard> {
@@ -44,6 +47,9 @@ public class DebitCard implements Comparable<DebitCard> {
         return iban.toString();
     }
 
+    /**
+     *
+     */
     public DebitCard() {
         this.setIban(this.generateIBAN());
         this.setBalance(0.0);
@@ -57,6 +63,11 @@ public class DebitCard implements Comparable<DebitCard> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param balance
+     * @param owner
+     */
     public DebitCard(double balance, Integer owner) {
         this.setIban(this.generateIBAN());
         this.setBalance(balance);
@@ -70,6 +81,12 @@ public class DebitCard implements Comparable<DebitCard> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param iban
+     * @param balance
+     * @param owner
+     */
     public DebitCard(String iban, double balance, Integer owner) {
         this.setIban(iban);
         this.setBalance(balance);
@@ -83,6 +100,15 @@ public class DebitCard implements Comparable<DebitCard> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param id
+     * @param iban
+     * @param creationDate
+     * @param expirationDate
+     * @param balance
+     * @param owner
+     */
     @JsonCreator
     public DebitCard(@JsonProperty("id") int id,
                      @JsonProperty("iban") String iban,
@@ -98,60 +124,112 @@ public class DebitCard implements Comparable<DebitCard> {
         this.setOwner(owner);
     }
 
+    /**
+     *
+     * @return
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     *
+     * @param id
+     */
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getIban() {
         return iban;
     }
 
+    /**
+     *
+     * @param iban
+     */
     @JsonSetter("iban")
     public void setIban(String iban) {
         this.iban = iban;
     }
 
+    /**
+     *
+     * @return
+     */
     public LocalDateTime getCreationDate() {
         return creationDate;
     }
 
+    /**
+     *
+     * @param creationDate
+     */
     @JsonSetter("creationDate")
     public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 
+    /**
+     *
+     * @return
+     */
     public LocalDateTime getExpirationDate() {
         return expirationDate;
     }
 
+    /**
+     *
+     * @param expirationDate
+     */
     @JsonSetter("expirationDate")
     public void setExpirationDate(LocalDateTime expirationDate) {
         this.expirationDate = expirationDate;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getBalance() {
         return balance;
     }
 
+    /**
+     *
+     * @param balance
+     */
     @JsonSetter("balance")
     public void setBalance(double balance) {
         this.balance = balance;
     }
 
+    /**
+     *
+     * @return
+     */
     public Integer getOwner() {
         return owner;
     }
 
+    /**
+     *
+     * @param owner
+     */
     @JsonSetter("owner")
     public void setOwner(Integer owner) {
         this.owner = owner;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public String toString() {
         ObjectMapper mapper = new ObjectMapper();
@@ -169,6 +247,11 @@ public class DebitCard implements Comparable<DebitCard> {
         }
     }
 
+    /**
+     *
+     * @param o the object to be compared.
+     * @return
+     */
     @Override
     public int compareTo(DebitCard o) {
         if(this.getId() < (o.getId()) && this.getCreationDate().isBefore(o.getCreationDate())
@@ -185,6 +268,10 @@ public class DebitCard implements Comparable<DebitCard> {
         }
     }
 
+    /**
+     *
+     * @param args
+     */
     public static void main(String[] args) {
         // DebitCard dc = new DebitCard(1000.0, 1);
         DebitCardReaderWriter drw = new DebitCardReaderWriter();

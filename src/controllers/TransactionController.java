@@ -26,6 +26,12 @@ public class TransactionController implements ITransactionManageable {
         this.hotel = hotel;
     }
 
+    /**
+     *
+     * @param debitCardId
+     * @param moneyToBePayed
+     * @return
+     */
     @Override
     public boolean makeTransaction(int debitCardId, double moneyToBePayed) {
         DebitCardReaderWriter drw = new DebitCardReaderWriter();

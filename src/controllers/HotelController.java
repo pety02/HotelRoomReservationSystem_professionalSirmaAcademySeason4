@@ -119,6 +119,10 @@ public class HotelController implements IHotelMangeable {
         rewrite(toBeReWrittenCards, HotelController.debitCardsFilename, DebitCard.class);
     }
 
+    /**
+     *
+     * @param currentHotel
+     */
     @Override
     public void viewAllRooms(Hotel currentHotel) {
         System.out.printf("%s's all FREE rooms%n", currentHotel.getName());
@@ -143,6 +147,14 @@ public class HotelController implements IHotelMangeable {
         }
     }
 
+    /**
+     *
+     * @param fromDate
+     * @param toDate
+     * @param guestsCount
+     * @param currentHotel
+     * @throws IllegalArgumentException
+     */
     @Override
     public void recommendRooms(LocalDateTime fromDate, LocalDateTime toDate, int guestsCount, Hotel currentHotel)
             throws IllegalArgumentException {
@@ -179,6 +191,16 @@ public class HotelController implements IHotelMangeable {
         }
     }
 
+    /**
+     *
+     * @param id
+     * @param currentHotel
+     * @param fromDate
+     * @param toDate
+     * @param bookedBy
+     * @param cancellationFees
+     * @throws IOException
+     */
     @Override
     public void bookRoom(int id, Hotel currentHotel, LocalDateTime fromDate, LocalDateTime toDate, User bookedBy, double cancellationFees) throws IOException {
         RoomReaderWriter rrw = new RoomReaderWriter();
@@ -233,6 +255,11 @@ public class HotelController implements IHotelMangeable {
         }
     }
 
+    /**
+     *
+     * @param currentHotel
+     * @throws IOException
+     */
     @Override
     public void freeRooms(Hotel currentHotel) throws IOException {
         LocalDateTime now = LocalDateTime.now();
@@ -280,6 +307,13 @@ public class HotelController implements IHotelMangeable {
         }
     }
 
+    /**
+     *
+     * @param reservationId
+     * @param currentUser
+     * @param currentHotel
+     * @throws RuntimeException
+     */
     @Override
     public void cancelReservation(int reservationId, User currentUser, Hotel currentHotel) throws RuntimeException {
         for (Map.Entry<Integer, Double> currentReservation : currentUser.getReservations().entrySet()) {

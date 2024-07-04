@@ -22,6 +22,11 @@ public class UserController implements IUserManageable {
     private final static String reservationsFilename = "reservations.txt";
     private final static String debitCardsFilename = "debitCards.txt";
 
+    /**
+     *
+     * @param credentials
+     * @return
+     */
     @Override
     public boolean register(String[] credentials) {
         String username = credentials[0], email = credentials[1],
@@ -47,6 +52,12 @@ public class UserController implements IUserManageable {
         return false;
     }
 
+    /**
+     *
+     * @param credentials
+     * @param loggedIn
+     * @return
+     */
     @Override
     public boolean login(String[] credentials, User loggedIn) {
         String username = credentials[0], password = credentials[1];
@@ -79,12 +90,19 @@ public class UserController implements IUserManageable {
         return false;
     }
 
+    /**
+     *
+     */
     @Override
     public void logout() {
         System.out.println("Goodbye... You had been successfully logged out!");
         System.exit(0);
     }
 
+    /**
+     *
+     * @param currentUser
+     */
     @Override
     public void showAllBookings(User currentUser) {
         System.out.println("All reservations:");
@@ -112,6 +130,10 @@ public class UserController implements IUserManageable {
         }
     }
 
+    /**
+     *
+     * @param currentUser
+     */
     @Override
     public void loadProfile(User currentUser) {
         System.out.printf("%s | %s%n", currentUser.getUsername(), currentUser.getEmail());
