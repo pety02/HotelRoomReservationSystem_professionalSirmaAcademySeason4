@@ -1,7 +1,5 @@
 package interfaces;
 
-import models.Hotel;
-
-public interface ITransaction {
+public interface ITransactionManageable {
     boolean makeTransaction(int debitCardId, double moneyToBePayed);
 }

@@ -123,6 +123,35 @@ public class Hotel implements Comparable<Hotel> {
 
     @Override
     public int compareTo(Hotel o) {
-        return Integer.compare(this.getId(), o.getId());
+        int firstCondition = 0, secondCondition = 0, thirdCondition = 0;
+        if(this.getId() < o.getId() && this.getName().compareTo(o.getName()) < 0
+            && this.getAddress().compareTo(o.getAddress()) < 0 && this.getIncomes() < o.getIncomes()) {
+            firstCondition = -1;
+        } else if(this.getId() == o.getId() && this.getName().compareTo(o.getName()) == 0
+                && this.getAddress().compareTo(o.getAddress()) == 0 && this.getIncomes() == o.getIncomes()) {
+            firstCondition = 0;
+        } else {
+            firstCondition = 1;
+        }
+
+        for(int currRoomId : this.allRooms) {
+            for(int currORoomId : o.getAllRooms()) {
+                secondCondition = Integer.compare(currRoomId, currORoomId);
+            }
+        }
+
+        for(int currRoomId : this.bookedRooms) {
+            for(int currORoomId : o.getBookedRooms()) {
+                thirdCondition = Integer.compare(currRoomId, currORoomId);
+            }
+        }
+
+        if(firstCondition < 0 || secondCondition < 0 || thirdCondition < 0) {
+            return -1;
+        } else if (firstCondition == 0 && secondCondition == 0 && thirdCondition == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }

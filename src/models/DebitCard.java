@@ -23,9 +23,7 @@ public class DebitCard implements Comparable<DebitCard> {
     private static int debitCardNo = 0;
     private int id;
     private String iban;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime creationDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime expirationDate;
     private double balance;
     private Integer owner;
@@ -191,6 +189,17 @@ public class DebitCard implements Comparable<DebitCard> {
 
     @Override
     public int compareTo(DebitCard o) {
-        return Integer.compare(this.getId(), o.getId());
+        if(this.getId() < (o.getId()) && this.getCreationDate().isBefore(o.getCreationDate())
+                && this.getExpirationDate().isBefore(o.getExpirationDate())
+                && this.getIban().compareTo(o.getIban()) < 0 && this.getBalance() < o.getBalance()
+                && this.getOwner().compareTo(o.getOwner()) < 0) {
+            return -1;
+        } else if(this.getId() == o.getId() && this.getCreationDate().equals(o.getCreationDate())
+                && this.getExpirationDate().equals(o.getExpirationDate()) && this.getIban().equals(o.getIban())
+                && this.getBalance() == o.getBalance() && this.getOwner().compareTo(o.getOwner()) == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
     }
 }

@@ -189,13 +189,48 @@ public class User implements Comparable<User> {
         return obj;
     }
 
+    @Override
+    public int compareTo(User o) {
+        int firstCondition = 0, secondCondition = 0;
+        if(this.getId() < o.getId() && this.getUsername().compareTo(o.getUsername()) < 0
+            && this.getEmail().compareTo(o.getEmail()) < 0 && this.getPassword().compareTo(o.getPassword()) < 0
+            && this.getDebitCard().getKey().compareTo(o.getDebitCard().getKey()) < 0
+            && this.getDebitCard().getValue().compareTo(o.getDebitCard().getValue()) < 0) {
+            firstCondition = -1;
+        } else if (this.getId() == o.getId() && this.getUsername().compareTo(o.getUsername()) == 0
+                && this.getEmail().compareTo(o.getEmail()) == 0 && this.getPassword().compareTo(o.getPassword()) == 0
+                && this.getDebitCard().getKey().compareTo(o.getDebitCard().getKey()) == 0
+                && this.getDebitCard().getValue().compareTo(o.getDebitCard().getValue()) == 0) {
+            firstCondition = 0;
+        } else {
+            firstCondition = 1;
+        }
+
+        for(Map.Entry<Integer, Double> currReservationId : this.getReservations().entrySet()) {
+            for(Map.Entry<Integer, Double> otherReservationId : o.getReservations().entrySet()) {
+                if (currReservationId.getKey().compareTo(otherReservationId.getKey()) < 0
+                    && currReservationId.getValue().compareTo(otherReservationId.getValue()) < 0) {
+                    secondCondition = -1;
+                } else if (currReservationId.getKey().compareTo(otherReservationId.getKey()) == 0
+                        && currReservationId.getValue().compareTo(otherReservationId.getValue()) == 0) {
+                    secondCondition = 0;
+                } else {
+                    secondCondition = 1;
+                }
+            }
+        }
+
+        if(firstCondition < 0 || secondCondition < 0) {
+            return -1;
+        } else if (firstCondition == 0 && secondCondition == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     public static void main(String[] args) {
         User u =  new User("petya123", "petyata@abv.bg", "petya123");
         System.out.println(u);
-    }
-
-    @Override
-    public int compareTo(User o) {
-        return Integer.compare(this.getId(), o.getId());
     }
 }

@@ -1,3 +1,4 @@
+import controllers.AdminController;
 import controllers.HotelController;
 import controllers.UserController;
 import models.Hotel;
@@ -6,9 +7,9 @@ import models.User;
 import readersWriters.HotelReaderWriter;
 import readersWriters.RoomReaderWriter;
 import types.RoomType;
+import validators.UserCredentialsValidator;
 
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ public class Application {
     reservationsFilename = "reservations.txt", hotelsFilename = "hotels.txt", debitCardsFilename = "debitCard.txt";
     private static final UserController userController = new UserController();
     private static final HotelController hotelController = new HotelController();
+    private static final AdminController adminController = new AdminController();
 
     private static String[] initRegistrationForm() {
         String[] credentials = new String[4];
@@ -63,6 +65,19 @@ public class Application {
         System.out.println("2. Book a Room");
         System.out.println("3. Cancel Booking");
         System.out.println("4. Log Out");
+    }
+
+    private static void initAdminMenu() {
+        System.out.println("Hotel Room Reservation System / Admin Panel");
+        System.out.println("-----------------------------");
+        System.out.println("MENU:");
+        System.out.println("1. View All Bookings");
+        System.out.println("2. View Total Income");
+        System.out.println("3. View Total Cancellation Fees");
+        System.out.println("4. Add Room");
+        System.out.println("5. Remove Room");
+        System.out.println("6. Update Room Data");
+        System.out.println("7. Log Out");
     }
 
     private static Hotel initHotel() {
@@ -152,11 +167,13 @@ public class Application {
         } catch (RuntimeException ex) {
             ex.fillInStackTrace();
             System.out.println("Oops! Something went wrong! Please try again later!");
+        } catch (IOException e) {
+            e.fillInStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
     private static void cancelBooking(int bookingId, User loggedIn, Hotel currentHotel) {
-        // TODO: to implement it
         hotelController.cancelReservation(bookingId, loggedIn, currentHotel);
     }
 
@@ -172,7 +189,7 @@ public class Application {
             case "Cancel Booking" -> {
                 userController.showAllBookings(currentUser);
                 System.out.println("If you really want to cancel this reservation, you must pay cancellation fees!");
-                System.out.println("Enter booking id:");
+                System.out.print("Enter booking id: ");
                 int bookingId = Integer.parseInt(scanner.nextLine());
                 cancelBooking(bookingId, currentUser, hotel);
             }
@@ -180,9 +197,37 @@ public class Application {
                 System.out.println("Goodbye... You had been successfully logged out!");
                 System.exit(0);
             }
-            default -> {
-                System.exit(0);
+            default -> System.out.println("Invalid command!");
+        }
+    }
+
+    private static void executeAdminCommand(String adminCmd) {
+        if(adminCmd.equals("Log Out") || adminCmd.equals("END")) {
+            System.out.println("Goodbye... You had been successfully logged out!");
+            System.exit(0);
+            return;
+        }
+        Scanner scanner = new Scanner(System.in);
+        adminController.showAllHotels();
+        System.out.print("Enter hotel Id: ");
+        int hotelId = Integer.parseInt(scanner.nextLine());
+
+        switch (adminCmd) {
+            case "View All Bookings" -> {
+                adminController.viewAllBookings(hotelId);
             }
+            case "View Total Income" -> {
+                double currHotelIncomes = adminController.getTotalIncome(hotelId);
+                System.out.printf("Hotel total incomes are %.2f$.%n", currHotelIncomes);
+            }
+            case "View Total Cancellation Fees" -> {
+                double currHotelCancellationFees = adminController.getCancellationFees(hotelId);
+                System.out.printf("Hotel total cancellation fees are %.2f$.%n", currHotelCancellationFees);
+            }
+            //case "Add Room" ->;
+            //case "Remove Room" ->;
+            //case "Update Room Data" ->;
+            default -> System.out.println("Invalid command!");
         }
     }
 
@@ -191,6 +236,7 @@ public class Application {
         System.out.println("Welcome to Hotel Reservation System!");
         System.out.println("If you are registered, please enter \"Login\"," +
                 "\nif you are not registered, please enter \"Register\"!");
+        System.out.println("For Admin Panel write \"Go to Admin Panel\"");
 
         Scanner scanner = new Scanner(System.in);
         String command;
@@ -227,7 +273,28 @@ public class Application {
                 } else {
                     System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
                 }
+            } else if (command.equals("Go to Admin Panel")) {
+                String secretCode;
+                do {
+                    System.out.print("Enter secret password: ");
+                    secretCode = scanner.nextLine();
+                } while (!UserCredentialsValidator.isValidSecretAdminCode(secretCode));
+
+                initAdminMenu();
+
+                String option;
+                do {
+                    do {
+                        System.out.print("Enter command: ");
+                        option = scanner.nextLine();
+                    } while (!option.equals("View All Bookings") &&
+                            !option.equals("View Total Income") && !option.equals("View Total Cancellation Fees") &&
+                            !option.equals("Add Room") && !option.equals("Remove Room") &&
+                            !option.equals("Update Room Data") &&
+                            !option.equals("Log Out") && !option.equals("END"));
+                    executeAdminCommand(option);
+                } while (!option.equals("END"));
             }
-        } while (!command.equals("Register") && !command.equals("Login"));
+        } while (!command.equals("Register") && !command.equals("Login") && !command.equals("Go to Admin Panel"));
     }
 }

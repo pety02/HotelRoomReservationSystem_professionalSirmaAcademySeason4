@@ -1,6 +1,6 @@
 package controllers;
 
-import interfaces.ITransaction;
+import interfaces.ITransactionManageable;
 import models.DebitCard;
 import models.Hotel;
 import readersWriters.DebitCardReaderWriter;
@@ -10,7 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class TransactionController implements ITransaction {
+public class TransactionController implements ITransactionManageable {
     private static final String debitCardsFilename = "debitCards.txt";
     private Hotel hotel;
 

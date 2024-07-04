@@ -23,9 +23,7 @@ import java.util.Map;
 public class Reservation implements Comparable<Reservation> {
     private static int reservationNo = 0;
     private int id;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime fromDate;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime toDate;
     private Map<Integer, Double> rooms;
     private int bookedBy;
@@ -199,6 +197,45 @@ public class Reservation implements Comparable<Reservation> {
         }
     }
 
+    @Override
+    public int compareTo(Reservation o) {
+
+        int firstCondition = 0, secondCondition = 0;
+        if(this.getId() < o.getId() && this.getFromDate().isBefore(o.getFromDate())
+            && this.getToDate().isBefore(o.getToDate()) && this.getTotalPrice() < o.getTotalPrice()
+            && this.getCancellationFees() < o.getCancellationFees() && this.getBookedBy() < o.getBookedBy()) {
+            firstCondition = -1;
+        } else if (this.getId() == o.getId() && this.getFromDate().equals(o.getFromDate())
+                && this.getToDate().equals(o.getToDate()) && this.getTotalPrice() == o.getTotalPrice()
+                && this.getCancellationFees() == o.getCancellationFees() && this.getBookedBy() == o.getBookedBy()) {
+            firstCondition = 0;
+        } else {
+            firstCondition = 1;
+        }
+
+        for(Map.Entry<Integer, Double> currentRoomId : this.getRooms().entrySet()) {
+            for(Map.Entry<Integer, Double> otherRoomId : o.getRooms().entrySet()) {
+                if(currentRoomId.getKey().compareTo(otherRoomId.getKey()) < 0
+                        && Double.compare(currentRoomId.getValue(), otherRoomId.getValue()) < 0) {
+                    secondCondition = -1;
+                } else if (currentRoomId.getKey().compareTo(otherRoomId.getKey()) == 0
+                        && Double.compare(currentRoomId.getValue(), otherRoomId.getValue()) == 0) {
+                    secondCondition = 0;
+                } else {
+                    secondCondition = 1;
+                }
+            }
+        }
+
+        if(firstCondition < 0 || secondCondition < 0) {
+            return -1;
+        } else if (firstCondition == 0 && secondCondition == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     public static void main(String[] args) {
         Reservation r = new Reservation(LocalDateTime.of(2024,7,2,10,30), LocalDateTime.of(2024,7,5,12,30), 100.00, false);
         System.out.println(r);
@@ -216,10 +253,5 @@ public class Reservation implements Comparable<Reservation> {
         for(Reservation c : ls) {
             System.out.println(c);
         }
-    }
-
-    @Override
-    public int compareTo(Reservation o) {
-        return Integer.compare(this.getId(), o.getId());
     }
 }

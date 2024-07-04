@@ -39,4 +39,8 @@ public class UserCredentialsValidator {
     public static boolean isValidPassword(String password) {
         return password.matches("^[a-zA-Z+0-9]{8,16}$");
     }
+
+    public static boolean isValidSecretAdminCode (String secretCode) {
+        return secretCode.equals("#HRRS_admin");
+    }
 }

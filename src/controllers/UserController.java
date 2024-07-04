@@ -94,8 +94,8 @@ public class UserController implements IUserManageable {
             } else {
                 for(Reservation reservation : readReservations) {
                     if (reservation.getBookedBy() == currentUser.getId()) {
-                        System.out.printf("From: %s | To: %s | Total price: %.2f$ | Status: %s%n",
-                                reservation.getFromDate(), reservation.getToDate(),
+                        System.out.printf("ID: %d | From: %s | To: %s | Total price: %.2f$ | Status: %s%n",
+                                reservation.getId(), reservation.getFromDate(), reservation.getToDate(),
                                 reservation.getTotalPrice(), reservation.isCancelled() ? "cancelled" : "active");
                     }
                 }

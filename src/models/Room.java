@@ -3,7 +3,6 @@ package models;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import types.RoomType;
@@ -191,13 +190,74 @@ public class Room implements Comparable<Room> {
         }
     }
 
+    @Override
+    public int compareTo(Room o) {
+        int firstCondition = 0, secondCondition = 0, thirdCondition = 0, fourthCondition = 0;
+        if(this.getId() < o.getId() && this.getType().compareTo(o.getType()) < 0
+            && this.getMaximumOccupancy() < o.getMaximumOccupancy() && this.getHotel() < o.getHotel()
+            && this.getPricePerNight() < o.getPricePerNight() && this.getTotalPrice() < o.getTotalPrice()) {
+            firstCondition = -1;
+        } else if (this.getId() == o.getId() && this.getType().compareTo(o.getType()) == 0
+                && this.getMaximumOccupancy() == o.getMaximumOccupancy() && this.getHotel().compareTo(o.getHotel()) == 0
+                && this.getPricePerNight() == o.getPricePerNight() && this.getTotalPrice() == o.getTotalPrice()) {
+            firstCondition = 0;
+        } else {
+            firstCondition = 1;
+        }
+
+        for(String currAmenity : this.getAmenities()) {
+            for(String otherAmenity : o.getAmenities()) {
+                if (currAmenity.compareTo(otherAmenity) < 0) {
+                    secondCondition = -1;
+                } else if(currAmenity.compareTo(otherAmenity) == 0) {
+                    secondCondition = 0;
+                } else {
+                    secondCondition = 1;
+                }
+            }
+        }
+
+        for(int currReservationId : this.getInReservations()) {
+            for(int otherReservationId : o.getInReservations()) {
+                if(currReservationId < otherReservationId) {
+                    thirdCondition = -1;
+                } else if (currReservationId == otherReservationId) {
+                    thirdCondition = 0;
+                } else {
+                    thirdCondition = 1;
+                }
+            }
+        }
+
+        for(Map.Entry<Boolean, ArrayList<LocalDateTime>> currRoomBookingAvailability : this.getBookingAvailability().entrySet()) {
+            for(Map.Entry<Boolean, ArrayList<LocalDateTime>> otherRoomBookingAvailability : o.getBookingAvailability().entrySet()) {
+                for(LocalDateTime currDT : currRoomBookingAvailability.getValue()) {
+                    for(LocalDateTime otherDT : otherRoomBookingAvailability.getValue()) {
+                        if (currRoomBookingAvailability.getKey().compareTo(otherRoomBookingAvailability.getKey()) < 0
+                            && currDT.isBefore(otherDT)) {
+                            fourthCondition = -1;
+                        } else if (currRoomBookingAvailability.getKey().compareTo(otherRoomBookingAvailability.getKey()) == 0
+                            && currDT.equals(otherDT)) {
+                            fourthCondition = 0;
+                        } else {
+                            fourthCondition = 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        if(firstCondition < 0 || secondCondition < 0 || thirdCondition < 0 || fourthCondition < 0) {
+            return -1;
+        } else if (firstCondition == 0 && secondCondition == 0 && thirdCondition == 0 && fourthCondition == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     public static void main(String[] args) {
         Room r = new Room();
         System.out.println(r);
-    }
-
-    @Override
-    public int compareTo(Room o) {
-        return Integer.compare(this.getId(), o.getId());
     }
 }
