@@ -4,6 +4,7 @@ import interfaces.IUserManageable;
 import models.DebitCard;
 import models.Reservation;
 import models.User;
+import readersWriters.DebitCardReaderWriter;
 import readersWriters.ReservationReaderWriter;
 import readersWriters.UserReaderWriter;
 import validators.UserCredentialsValidator;
@@ -19,22 +20,28 @@ import java.util.Map;
 public class UserController implements IUserManageable {
     private final static String usersFilename = "users.txt";
     private final static String reservationsFilename = "reservations.txt";
+    private final static String debitCardsFilename = "debitCards.txt";
 
     @Override
     public boolean register(String[] credentials) {
         String username = credentials[0], email = credentials[1],
-                password = credentials[2], reEnteredPassword = credentials[3];
+                password = credentials[2], reEnteredPassword = credentials[3], balanceString = credentials[4];
+        Double balance = Double.parseDouble(balanceString);
         if(username.matches("^[a-zA-Z+0-9]{6,20}$")
                 && UserCredentialsValidator.isValidEmail(email)
                 && UserCredentialsValidator.isValidPassword(password)
-                && UserCredentialsValidator.isValidPassword(reEnteredPassword)) {
-            User registeredUser = new User(username, email, password, new ArrayList<>(), null);
-            DebitCard userDebitCard = new DebitCard();
-            userDebitCard.setOwner(registeredUser.getId());
-            registeredUser.setDebitCard(Map.entry(userDebitCard.getId(), userDebitCard.getBalance()));
-            UserReaderWriter uw = new UserReaderWriter();
+                && UserCredentialsValidator.isValidPassword(reEnteredPassword)
+                && 0.0 < balance) {
+            User registeredUser = new User (username, email, password, new ArrayList<>(), null);
+            DebitCard debitCard = new DebitCard (balance, registeredUser.getId());
+            registeredUser.setDebitCard(Map.entry(debitCard.getId(), debitCard.getBalance()));
 
+            UserReaderWriter uw = new UserReaderWriter();
             uw.write(registeredUser, UserController.usersFilename);
+
+            DebitCardReaderWriter dw = new DebitCardReaderWriter();
+            dw.write(debitCard, UserController.debitCardsFilename);
+
             return true;
         }
         return false;

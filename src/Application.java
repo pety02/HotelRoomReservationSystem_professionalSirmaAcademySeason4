@@ -24,7 +24,7 @@ public class Application {
     private static final AdminController adminController = new AdminController();
 
     private static String[] initRegistrationForm() {
-        String[] credentials = new String[4];
+        String[] credentials = new String[5];
         Scanner scanner = new Scanner(System.in);
 
         System.out.println("Hotel models.Room models.Reservation System");
@@ -38,6 +38,8 @@ public class Application {
         credentials[2] = scanner.nextLine();
         System.out.print("*Re-Entered password: ");
         credentials[3] = scanner.nextLine();
+        System.out.println("*Debit-Card Balance:");
+        credentials[4] = scanner.nextLine();
 
         return credentials;
     }

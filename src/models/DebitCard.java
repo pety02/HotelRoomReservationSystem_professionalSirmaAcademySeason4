@@ -169,6 +169,22 @@ public class DebitCard implements Comparable<DebitCard> {
         }
     }
 
+    @Override
+    public int compareTo(DebitCard o) {
+        if(this.getId() < (o.getId()) && this.getCreationDate().isBefore(o.getCreationDate())
+                && this.getExpirationDate().isBefore(o.getExpirationDate())
+                && this.getIban().compareTo(o.getIban()) < 0 && this.getBalance() < o.getBalance()
+                && this.getOwner().compareTo(o.getOwner()) < 0) {
+            return -1;
+        } else if(this.getId() == o.getId() && this.getCreationDate().equals(o.getCreationDate())
+                && this.getExpirationDate().equals(o.getExpirationDate()) && this.getIban().equals(o.getIban())
+                && this.getBalance() == o.getBalance() && this.getOwner().compareTo(o.getOwner()) == 0) {
+            return 0;
+        } else {
+            return 1;
+        }
+    }
+
     public static void main(String[] args) {
         // DebitCard dc = new DebitCard(1000.0, 1);
         DebitCardReaderWriter drw = new DebitCardReaderWriter();
@@ -184,22 +200,6 @@ public class DebitCard implements Comparable<DebitCard> {
         }
         for(DebitCard c : ls) {
             System.out.println(c);
-        }
-    }
-
-    @Override
-    public int compareTo(DebitCard o) {
-        if(this.getId() < (o.getId()) && this.getCreationDate().isBefore(o.getCreationDate())
-                && this.getExpirationDate().isBefore(o.getExpirationDate())
-                && this.getIban().compareTo(o.getIban()) < 0 && this.getBalance() < o.getBalance()
-                && this.getOwner().compareTo(o.getOwner()) < 0) {
-            return -1;
-        } else if(this.getId() == o.getId() && this.getCreationDate().equals(o.getCreationDate())
-                && this.getExpirationDate().equals(o.getExpirationDate()) && this.getIban().equals(o.getIban())
-                && this.getBalance() == o.getBalance() && this.getOwner().compareTo(o.getOwner()) == 0) {
-            return 0;
-        } else {
-            return 1;
         }
     }
 }
