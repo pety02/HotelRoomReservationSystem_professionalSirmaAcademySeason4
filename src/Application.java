@@ -81,6 +81,7 @@ public class Application {
     }
 
     private static Hotel initHotel() {
+        // TODO: to read all this data.
         Hotel myHotel = new Hotel("Petya's Hotel", "Malina str. 8, Town-City", new ArrayList<>());
         Map<Boolean, ArrayList<LocalDateTime>> bookingAvailabilities = new HashMap<>(){};
         LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0, 0);
@@ -108,7 +109,7 @@ public class Application {
         myHotel.getAllRooms().add(room4.getId());
         myHotel.getAllRooms().add(room5.getId());
 
-        RoomReaderWriter rrw = new RoomReaderWriter();
+        /*RoomReaderWriter rrw = new RoomReaderWriter();
         File rfile = new File(Application.roomsFilename);
         try(FileWriter fw = new FileWriter(rfile)) {
             rrw.write(room1, Application.roomsFilename);
@@ -126,7 +127,7 @@ public class Application {
             hrw.write(myHotel, Application.hotelsFilename);
         } catch (IOException ex) {
             ex.fillInStackTrace();
-        }
+        }*/
 
         return myHotel;
     }
@@ -201,6 +202,16 @@ public class Application {
         }
     }
 
+    private static RoomType getType(String type) {
+        return switch (type) {
+            case "Deluxe" -> RoomType.DELUXE;
+            case "Suite" -> RoomType.SUITE;
+            case "Single" -> RoomType.SINGLE;
+            case "Double" -> RoomType.DOUBLE;
+            default -> RoomType.UNKNOWN;
+        };
+    }
+
     private static void executeAdminCommand(String adminCmd) {
         if(adminCmd.equals("Log Out") || adminCmd.equals("END")) {
             System.out.println("Goodbye... You had been successfully logged out!");
@@ -224,9 +235,61 @@ public class Application {
                 double currHotelCancellationFees = adminController.getCancellationFees(hotelId);
                 System.out.printf("Hotel total cancellation fees are %.2f$.%n", currHotelCancellationFees);
             }
-            //case "Add Room" ->;
-            //case "Remove Room" ->;
-            //case "Update Room Data" ->;
+            case "Add Room" -> {
+                System.out.print("Enter room id: ");
+                int id = Integer.parseInt(scanner.nextLine());
+                System.out.print("Enter room type: ");
+                String typeString = scanner.nextLine();
+                RoomType type = getType(typeString);
+                System.out.print("Enter amenities, separated by a single space: ");
+                String amenitiesString = scanner.nextLine();
+                String[] amenities = amenitiesString.split(" ");
+                ArrayList<String> amenitiesList = new ArrayList<>(Arrays.asList(amenities));
+                System.out.print("Enter maximum occupancy count: ");
+                int maxOccupancy = Integer.parseInt(scanner.nextLine());
+                System.out.print("Enter price per night per person: ");
+                double pricePerNight = Double.parseDouble(scanner.nextLine());
+
+                if(adminController.addRoom(id, hotelId, type, amenitiesList, maxOccupancy, pricePerNight)) {
+                    System.out.printf("Successfully added new room in hotel with id %d!%n", hotelId);
+                } else {
+                    System.out.println("Sorry, but the room's creation not successful!");
+                }
+            }
+            case "Remove Room" -> {
+                adminController.showAllHotelRooms(hotelId);
+                System.out.print("Enter room id: ");
+                int roomId = Integer.parseInt(scanner.nextLine());
+
+                if(adminController.removeRoom(roomId)) {
+                    System.out.printf("Successfully removed room with id %d!%n", roomId);
+                } else {
+                    System.out.println("Sorry, but the room's deletion not successful!");
+                }
+            }
+            case "Update Room Data" -> {
+                adminController.showAllHotelRooms(hotelId);
+                System.out.print("Enter room id: ");
+                int roomId = Integer.parseInt(scanner.nextLine());
+
+                System.out.print("Enter room type: ");
+                String typeString = scanner.nextLine();
+                RoomType type = getType(typeString);
+                System.out.print("Enter amenities, separated by a single space: ");
+                String amenitiesString = scanner.nextLine();
+                String[] amenities = amenitiesString.split(" ");
+                ArrayList<String> amenitiesList = new ArrayList<>(Arrays.asList(amenities));
+                System.out.print("Enter maximum occupancy count: ");
+                int maxOccupancy = Integer.parseInt(scanner.nextLine());
+                System.out.print("Enter price per night per person: ");
+                double pricePerNight = Double.parseDouble(scanner.nextLine());
+
+                if(adminController.updateRoom(roomId, hotelId, type, amenitiesList, maxOccupancy, pricePerNight)) {
+                    System.out.printf("Successfully updated room with id %d!%n", roomId);
+                } else {
+                    System.out.println("Sorry, but the room's update not successful!");
+                }
+            }
             default -> System.out.println("Invalid command!");
         }
     }

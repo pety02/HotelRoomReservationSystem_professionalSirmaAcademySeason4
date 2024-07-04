@@ -48,7 +48,7 @@ public class Room implements Comparable<Room> {
         this.setId(this.generateId());
     }
 
-    public Room(Integer hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
+    public Room(int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
                 boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
                 double pricePerNight, ArrayList<Integer> inReservations) {
         this.setHotel(hotel);
@@ -61,6 +61,21 @@ public class Room implements Comparable<Room> {
         this.setBookingAvailability(bookingAvailability);
         this.setInReservations(inReservations);
         this.setId(this.generateId());
+    }
+
+    public Room(int id, int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
+                boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
+                double pricePerNight, ArrayList<Integer> inReservations) {
+        this.setId(id);
+        this.setHotel(hotel);
+        this.setType(type);
+        this.setAmenities(amenities);
+        this.setMaximumOccupancy(maximumOccupancy);
+        this.setPricePerNight(pricePerNight);
+        this.setTotalPrice(pricePerNight * maximumOccupancy);
+        this.setBooked(isBooked);
+        this.setBookingAvailability(bookingAvailability);
+        this.setInReservations(inReservations);
     }
 
     @JsonCreator
