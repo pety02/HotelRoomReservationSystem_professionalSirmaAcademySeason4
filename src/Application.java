@@ -4,12 +4,15 @@ import controllers.UserController;
 import models.Hotel;
 import models.Room;
 import models.User;
+import readersWriters.HotelReaderWriter;
+import readersWriters.RoomReaderWriter;
 import types.RoomType;
 import validators.UserCredentialsValidator;
 
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.util.*;
 
 /*
@@ -98,55 +101,40 @@ public class Application {
     return Initialized Hotel object.
     */
     private static Hotel initHotel() {
-        // TODO: to read all this data.
-        Hotel myHotel = new Hotel("Petya's Hotel", "Malina str. 8, Town-City", new ArrayList<>());
-        Map<Boolean, ArrayList<LocalDateTime>> bookingAvailabilities = new HashMap<>(){};
-        LocalDateTime startDate = LocalDateTime.of(2024, Month.JANUARY, 1, 0, 0, 0);
-        LocalDateTime endDate = LocalDateTime.of(2025, Month.JANUARY, 1, 0, 0, 0);
-        ArrayList<LocalDateTime> dates = new ArrayList<>();
-        dates.add(startDate);
-        dates.add(endDate);
-        bookingAvailabilities.put(true, dates);
-        bookingAvailabilities.put(false, new ArrayList<>());
-        ArrayList<String> amenities = new ArrayList<>();
-        amenities.add("TV");
-        amenities.add("Air conditioning");
-        amenities.add("Refrigerator");
-        amenities.add("Balcony");
+        Hotel hotel = null;
 
-        Room room1 = new Room(1, myHotel.getId(), RoomType.SUITE, amenities, 2, 50.00, 100.00, false, bookingAvailabilities, new ArrayList<>()),
-                room2 = new Room(2, myHotel.getId(), RoomType.DELUXE, amenities, 5, 85.00, 420.00, false, bookingAvailabilities, new ArrayList<>()),
-                room3 = new Room(3, myHotel.getId(), RoomType.SINGLE, amenities, 1, 30.00, 30.00, false, bookingAvailabilities, new ArrayList<>()),
-                room4 = new Room(4, myHotel.getId(), RoomType.DOUBLE, amenities, 2, 45.00, 90.00, false, bookingAvailabilities, new ArrayList<>()),
-                room5 = new Room(5, myHotel.getId(), RoomType.SUITE, amenities, 2, 35.00, 70.00, false, bookingAvailabilities, new ArrayList<>());
+        HotelReaderWriter hotelRW = new HotelReaderWriter();
+        File hotelsFile = new File("hotels.txt");
+        ArrayList<Hotel> readHotels;
+        try(FileReader hotelsFR = new FileReader(hotelsFile)) {
+            readHotels = hotelRW.read(hotelsFR, hotelsFile);
 
-        myHotel.getAllRoomsIds().add(room1.getId());
-        myHotel.getAllRoomsIds().add(room2.getId());
-        myHotel.getAllRoomsIds().add(room3.getId());
-        myHotel.getAllRoomsIds().add(room4.getId());
-        myHotel.getAllRoomsIds().add(room5.getId());
+            // Initialize the hotel object
+            if(!readHotels.isEmpty()) {
+                hotel = readHotels.getFirst();
 
-        /*RoomReaderWriter rrw = new RoomReaderWriter();
-        File rfile = new File(Application.roomsFilename);
-        try(FileWriter fw = new FileWriter(rfile)) {
-            rrw.write(room1, Application.roomsFilename);
-            rrw.write(room2, Application.roomsFilename);
-            rrw.write(room3, Application.roomsFilename);
-            rrw.write(room4, Application.roomsFilename);
-            rrw.write(room5, Application.roomsFilename);
+                // Read rooms for the hotel from rooms.txt
+                RoomReaderWriter roomRW = new RoomReaderWriter();
+                File roomsFile = new File("rooms.txt");
+                ArrayList<Room> readRooms = new ArrayList<>();
+                try (FileReader roomsFR = new FileReader(roomsFile)) {
+                    readRooms = roomRW.read(roomsFR, roomsFile);
+                } catch (IOException ex) {
+                    ex.fillInStackTrace();
+                    System.out.printf("Cannot read from file with name %s!%n", roomsFile.getName());
+                }
+
+                for (Room room : readRooms) {
+                    hotel.getAllRoomsIds().add(room.getId());
+                }
+            } else {
+                System.out.println("There is no hotels to be read!");
+            }
         } catch (IOException ex) {
             ex.fillInStackTrace();
         }
 
-        HotelReaderWriter hrw = new HotelReaderWriter();
-        File hfile = new File(Application.hotelsFilename);
-        try(FileWriter fw = new FileWriter(hfile)) {
-            hrw.write(myHotel, Application.hotelsFilename);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-        }*/
-
-        return myHotel;
+        return hotel;
     }
 
     /*
@@ -224,12 +212,8 @@ public class Application {
     private static void executeCommand(String command, Hotel hotel, User currentUser) {
         Scanner scanner = new Scanner(System.in);
         switch (command) {
-            case "View Rooms" -> {
-                viewRooms(hotel);
-            }
-            case "Book a Room" -> {
-                bookRoom(hotel, currentUser);
-            }
+            case "View Rooms" -> viewRooms(hotel);
+            case "Book a Room" -> bookRoom(hotel, currentUser);
             case "Cancel Booking" -> {
                 userController.showAllBookings(currentUser);
                 System.out.println("If you really want to cancel this reservation, you must pay cancellation fees!");
@@ -276,9 +260,7 @@ public class Application {
         int hotelId = Integer.parseInt(scanner.nextLine());
 
         switch (adminCmd) {
-            case "View All Bookings" -> {
-                adminController.viewAllBookings(hotelId);
-            }
+            case "View All Bookings" -> adminController.viewAllBookings(hotelId);
             case "View Total Income" -> {
                 double currHotelIncomes = adminController.getTotalIncome(hotelId);
                 System.out.printf("Hotel total incomes are %.2f$.%n", currHotelIncomes);
@@ -363,56 +345,59 @@ public class Application {
         do {
             System.out.print("Enter command: ");
             command = scanner.nextLine();
-            if (command.equals("Register")) {
-                userCredentials = initRegistrationForm();
-                boolean isRegistered = userController.register(userCredentials);
-                if(isRegistered) {
-                    userCredentials = initLoginForm();
-                } else {
-                    System.out.println("Sorry, incorrect registration data! Please try to register yourself again!");
+            switch (command) {
+                case "Register" -> {
+                    userCredentials = initRegistrationForm();
+                    boolean isRegistered = userController.register(userCredentials);
+                    if (isRegistered) {
+                        userCredentials = initLoginForm();
+                        command = "Login";
+                    } else {
+                        System.out.println("Sorry, incorrect registration data! Please try to register yourself again!");
+                    }
                 }
-            } else if(command.equals("Login")) {
-                userCredentials = initLoginForm();
-                User loggedIn = new User();
-                boolean isLoggedIn = userController.login(userCredentials, loggedIn);
-                if(isLoggedIn) {
-                    userController.loadProfile(loggedIn);
-                    System.out.printf("Welcome, %s!%n", loggedIn.getUsername());
-                    initMenu();
+                case "Login" -> {
+                    userCredentials = initLoginForm();
+                    User loggedIn = new User();
+                    boolean isLoggedIn = userController.login(userCredentials, loggedIn);
+                    if (isLoggedIn) {
+                        userController.loadProfile(loggedIn);
+                        System.out.printf("Welcome, %s!%n", loggedIn.getUsername());
+                        initMenu();
+                        String option;
+                        do {
+                            do {
+                                System.out.print("Enter command: ");
+                                option = scanner.nextLine();
+                            } while (!option.equals("View Rooms") &&
+                                    !option.equals("Book a Room") && !option.equals("Cancel Booking") &&
+                                    !option.equals("Log Out") && !option.equals("END"));
+                            executeCommand(option, hotel, loggedIn);
+                        } while (!option.equals("END"));
+                    } else {
+                        System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
+                    }
+                }
+                case "Go to Admin Panel" -> {
+                    String secretCode;
+                    do {
+                        System.out.print("Enter secret password: ");
+                        secretCode = scanner.nextLine();
+                    } while (!UserCredentialsValidator.isValidSecretAdminCode(secretCode));
+                    initAdminMenu();
                     String option;
                     do {
                         do {
                             System.out.print("Enter command: ");
                             option = scanner.nextLine();
-                        } while (!option.equals("View Rooms") &&
-                                !option.equals("Book a Room") && !option.equals("Cancel Booking") &&
+                        } while (!option.equals("View All Bookings") &&
+                                !option.equals("View Total Income") && !option.equals("View Total Cancellation Fees") &&
+                                !option.equals("Add Room") && !option.equals("Remove Room") &&
+                                !option.equals("Update Room Data") &&
                                 !option.equals("Log Out") && !option.equals("END"));
-                        executeCommand(option, hotel, loggedIn);
+                        executeAdminCommand(option);
                     } while (!option.equals("END"));
-                } else {
-                    System.out.println("Sorry, you mistake your credentials, so try to log-in again!");
                 }
-            } else if (command.equals("Go to Admin Panel")) {
-                String secretCode;
-                do {
-                    System.out.print("Enter secret password: ");
-                    secretCode = scanner.nextLine();
-                } while (!UserCredentialsValidator.isValidSecretAdminCode(secretCode));
-
-                initAdminMenu();
-
-                String option;
-                do {
-                    do {
-                        System.out.print("Enter command: ");
-                        option = scanner.nextLine();
-                    } while (!option.equals("View All Bookings") &&
-                            !option.equals("View Total Income") && !option.equals("View Total Cancellation Fees") &&
-                            !option.equals("Add Room") && !option.equals("Remove Room") &&
-                            !option.equals("Update Room Data") &&
-                            !option.equals("Log Out") && !option.equals("END"));
-                    executeAdminCommand(option);
-                } while (!option.equals("END"));
             }
         } while (!command.equals("Register") && !command.equals("Login") && !command.equals("Go to Admin Panel"));
     }

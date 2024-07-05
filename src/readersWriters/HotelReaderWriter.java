@@ -69,6 +69,7 @@ public class HotelReaderWriter extends ReaderWriter<Hotel> {
             }
         } catch (IOException ex) {
             ex.fillInStackTrace();
+            ex.printStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
         }
 
