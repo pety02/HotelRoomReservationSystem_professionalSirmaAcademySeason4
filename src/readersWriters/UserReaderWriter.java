@@ -7,10 +7,16 @@ import java.io.*;
 import java.util.ArrayList;
 
 /**
- *
+ * A class responsible for reading from and writing to a file of User objects using JSON format.
  */
 public class UserReaderWriter extends ReaderWriter<User> {
 
+    /**
+     * Parses a JSON string into a User object using Jackson ObjectMapper.
+     * @param json The JSON string to parse.
+     * @return The parsed User object.
+     * @throws IOException If there is an error during parsing.
+     */
     private static User parse(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         User obj = mapper.reader().readValue(json, User.class);
@@ -21,14 +27,14 @@ public class UserReaderWriter extends ReaderWriter<User> {
     }
 
     /**
-     *
-     * @param obj
-     * @param filename
+     * Writes a User object to a file in JSON format.
+     * @param obj The User object to write.
+     * @param filename The name of the file to write to.
      */
     @Override
     public void write(User obj, String filename)  {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
-            bw.write(obj.toString());
+            bw.write(obj.toString()); // Assuming User has a sensible toString() method
             bw.newLine();
         } catch (IOException ex) {
             ex.fillInStackTrace();
@@ -37,10 +43,10 @@ public class UserReaderWriter extends ReaderWriter<User> {
     }
 
     /**
-     *
-     * @param fr
-     * @param file
-     * @return
+     * Reads User objects from a file in JSON format.
+     * @param fr The FileReader object initialized with the file to read from.
+     * @param file The File object representing the file to read from.
+     * @return An ArrayList of User objects read from the file.
      */
     @Override
     public ArrayList<User> read(FileReader fr, File file) {
@@ -49,20 +55,20 @@ public class UserReaderWriter extends ReaderWriter<User> {
         ArrayList<User> users = new ArrayList<>();
         try {
             readByte = fr.read();
-            sb.append((char)readByte);
-            User user = new User();
+            sb.append((char) readByte);
+            User user;
             while (readByte > -1) {
-                if((char) readByte == '\n') {
-                    user = UserReaderWriter.parse(sb.substring(0,sb.length() - 1));
+                if ((char) readByte == '\n') {
+                    // Parse the JSON string into a User object and add to the list
+                    user = UserReaderWriter.parse(sb.substring(0, sb.length() - 1));
                     users.add(user);
                     sb = new StringBuilder();
                 }
                 readByte = fr.read();
-                sb.append((char)readByte);
+                sb.append((char) readByte);
             }
         } catch (IOException ex) {
             ex.fillInStackTrace();
-            ex.printStackTrace();
             System.out.printf("Cannot read from a file with the name %s", file.getName());
         }
 

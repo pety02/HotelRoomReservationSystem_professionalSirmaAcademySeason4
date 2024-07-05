@@ -6,14 +6,16 @@ import readersWriters.*;
 
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The HotelController class implements the IHotelMangeable interface and provides functionality
+ * to manage hotel-related operations such as viewing rooms, booking rooms, and canceling reservations.
+ */
 public class HotelController implements IHotelMangeable {
     private final static String usersFilename = "users.txt";
     private final static String roomsFilename = "rooms.txt";
@@ -25,22 +27,7 @@ public class HotelController implements IHotelMangeable {
     private <T extends Comparable<T>>void rewrite(ArrayList<T> objs, String filename, Class<T> cl) throws IOException {
         ArrayList<T> readObjs = new ArrayList<>();
         File file = new File(filename);
-        ReaderWriter<T> readerWriter;
-
-        // Determine the appropriate ReaderWriter
-        if (cl == Room.class) {
-            readerWriter = (ReaderWriter<T>) new RoomReaderWriter();
-        } else if (cl == Hotel.class) {
-            readerWriter = (ReaderWriter<T>) new HotelReaderWriter();
-        } else if (cl == User.class) {
-            readerWriter = (ReaderWriter<T>) new UserReaderWriter();
-        } else if (cl == DebitCard.class) {
-            readerWriter = (ReaderWriter<T>) new DebitCardReaderWriter();
-        } else if (cl == Reservation.class) {
-            readerWriter = (ReaderWriter<T>) new ReservationReaderWriter();
-        } else {
-            throw new RuntimeException("Unknown abstract T type.");
-        }
+        ReaderWriter<T> readerWriter = getCorrectReaderWriter(cl);
 
         // Read the existing objects from the file
         try (FileReader fileReader = new FileReader(file)) {
@@ -67,16 +54,32 @@ public class HotelController implements IHotelMangeable {
             }
 
             // Write all objects back to the file
-            try (FileWriter fileWriter = new FileWriter(filename)) {
-                for (T readObj : readObjs) {
-                    readerWriter.write(readObj, filename);
-                }
-            } catch (IOException e) {
-                e.fillInStackTrace();
+            for (T readObj : readObjs) {
+                readerWriter.write(readObj, filename);
             }
         } else {
             throw new IOException("Failed to delete the file.");
         }
+    }
+
+    private static <T extends Comparable<T>> ReaderWriter<T> getCorrectReaderWriter(Class<T> cl) {
+        ReaderWriter<T> readerWriter;
+
+        // Determine the appropriate ReaderWriter
+        if (cl == Room.class) {
+            readerWriter = (ReaderWriter<T>) new RoomReaderWriter();
+        } else if (cl == Hotel.class) {
+            readerWriter = (ReaderWriter<T>) new HotelReaderWriter();
+        } else if (cl == User.class) {
+            readerWriter = (ReaderWriter<T>) new UserReaderWriter();
+        } else if (cl == DebitCard.class) {
+            readerWriter = (ReaderWriter<T>) new DebitCardReaderWriter();
+        } else if (cl == Reservation.class) {
+            readerWriter = (ReaderWriter<T>) new ReservationReaderWriter();
+        } else {
+            throw new RuntimeException("Unknown abstract T type.");
+        }
+        return readerWriter;
     }
 
     private void rewriteFiles(Room readRoom, Reservation reservation, Hotel currentHotel, User currentUser) throws IOException {
@@ -88,7 +91,7 @@ public class HotelController implements IHotelMangeable {
         hotels.add(currentHotel);
         rewrite(hotels, HotelController.hotelsFilename, Hotel.class);
 
-        reservation.setBookedBy(currentUser.getId());
+        reservation.setBookedById(currentUser.getId());
         ArrayList<Reservation> reservations = new ArrayList<>();
         reservations.add(reservation);
         rewrite(reservations, HotelController.reservationsFilename, Reservation.class);
@@ -120,8 +123,9 @@ public class HotelController implements IHotelMangeable {
     }
 
     /**
+     * Displays all free rooms of the given hotel.
      *
-     * @param currentHotel
+     * @param currentHotel the hotel whose rooms are to be displayed
      */
     @Override
     public void viewAllRooms(Hotel currentHotel) {
@@ -129,16 +133,9 @@ public class HotelController implements IHotelMangeable {
         System.out.printf("address: %s%n", currentHotel.getAddress());
         System.out.println("----------------");
         System.out.println();
-        RoomReaderWriter rrw = new RoomReaderWriter();
-        File file = new File(HotelController.roomsFilename);
-        ArrayList<Room> readRooms = new ArrayList<>();
-        try (FileReader fr = new FileReader(file)) {
-            readRooms = rrw.read(fr, file);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-        }
+        ArrayList<Room> readRooms = readAllRooms();
         for (Room room : readRooms) {
-            if(currentHotel.getAllRooms().contains(room.getId())) {
+            if(currentHotel.getAllRoomsIds().contains(room.getId())) {
                 System.out.printf("Room type: %s | Max persons: %d | Price per night (per person): %.2f$ | " +
                                 "Total price per night: %.2f$%n", room.getType(),
                         room.getMaximumOccupancy(), room.getPricePerNight(),
@@ -147,13 +144,26 @@ public class HotelController implements IHotelMangeable {
         }
     }
 
+    private static ArrayList<Room> readAllRooms() {
+        RoomReaderWriter rrw = new RoomReaderWriter();
+        File file = new File(HotelController.roomsFilename);
+        ArrayList<Room> readRooms = new ArrayList<>();
+        try (FileReader fr = new FileReader(file)) {
+            readRooms = rrw.read(fr, file);
+        } catch (IOException ex) {
+            ex.fillInStackTrace();
+        }
+        return readRooms;
+    }
+
     /**
+     * Recommends rooms based on the provided criteria.
      *
-     * @param fromDate
-     * @param toDate
-     * @param guestsCount
-     * @param currentHotel
-     * @throws IllegalArgumentException
+     * @param fromDate the start date of the booking
+     * @param toDate the end date of the booking
+     * @param guestsCount the number of guests
+     * @param currentHotel the hotel where the rooms are being recommended
+     * @throws IllegalArgumentException if the input parameters are invalid
      */
     @Override
     public void recommendRooms(LocalDateTime fromDate, LocalDateTime toDate, int guestsCount, Hotel currentHotel)
@@ -164,11 +174,11 @@ public class HotelController implements IHotelMangeable {
         try (FileReader fr = new FileReader(file)) {
             readRooms = rrw.read(fr, file);
             for (Room room : readRooms) {
-                if(currentHotel.getBookedRooms().contains(room.getId())) {
+                if(currentHotel.getBookedRoomsIds().contains(room.getId())) {
                     System.out.println("Sorry but this room is currently booked!");
                     break;
                 }
-                if (currentHotel.getAllRooms().contains(room.getId())) {
+                if (currentHotel.getAllRoomsIds().contains(room.getId())) {
                     for (var isCurrentlyAvailable : room.getBookingAvailability().entrySet()) {
                         if(!isCurrentlyAvailable.getKey()) {
                             continue;
@@ -192,27 +202,21 @@ public class HotelController implements IHotelMangeable {
     }
 
     /**
+     * Books a room based on the provided details.
      *
-     * @param id
-     * @param currentHotel
-     * @param fromDate
-     * @param toDate
-     * @param bookedBy
-     * @param cancellationFees
-     * @throws IOException
+     * @param id the ID of the room to be booked
+     * @param currentHotel the hotel where the room is being booked
+     * @param fromDate the start date of the booking
+     * @param toDate the end date of the booking
+     * @param bookedBy the user who is booking the room
+     * @param cancellationFees the cancellation fees applicable
+     * @throws IOException if an I/O error occurs
      */
     @Override
     public void bookRoom(int id, Hotel currentHotel, LocalDateTime fromDate, LocalDateTime toDate, User bookedBy, double cancellationFees) throws IOException {
-        RoomReaderWriter rrw = new RoomReaderWriter();
-        File file = new File(HotelController.roomsFilename);
-        ArrayList<Room> readRooms = new ArrayList<>();
-        try (FileReader fr = new FileReader(file);) {
-            readRooms = rrw.read(fr, file);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-        }
+        ArrayList<Room> readRooms = readAllRooms();
         boolean isBooked = false;
-        for (Integer currentRoomId : currentHotel.getAllRooms()) {
+        for (Integer currentRoomId : currentHotel.getAllRoomsIds()) {
             if(isBooked) {
                 break;
             }
@@ -225,13 +229,13 @@ public class HotelController implements IHotelMangeable {
                     room.getBookingAvailability().get(false).add(toDate);
                     // booked room
                     room.setBooked(true);
-                    currentHotel.getBookedRooms().add(room.getId());
+                    currentHotel.getBookedRoomsIds().add(room.getId());
 
                     Reservation reservation = new Reservation(fromDate, toDate, cancellationFees, false);
-                    reservation.getRooms().put(room.getId(), room.getTotalPrice());
+                    reservation.getRoomsIds().put(room.getId(), room.getTotalPrice());
                     int days = toDate.getDayOfYear() - fromDate.getDayOfYear();
                     reservation.setTotalPrice(reservation.calculateTotalPrice(days));
-                    room.getInReservations().add(reservation.getId());
+                    room.getInReservationsIds().add(reservation.getId());
 
                     if(bookedBy.getDebitCard().getValue() < reservation.getTotalPrice()) {
                         System.out.println("Sorry, but you haven't enough money! Try again later...");
@@ -256,9 +260,10 @@ public class HotelController implements IHotelMangeable {
     }
 
     /**
+     * Frees rooms that are currently booked but have passed the current date.
      *
-     * @param currentHotel
-     * @throws IOException
+     * @param currentHotel the hotel where rooms are to be freed
+     * @throws IOException if an I/O error occurs
      */
     @Override
     public void freeRooms(Hotel currentHotel) throws IOException {
@@ -285,16 +290,16 @@ public class HotelController implements IHotelMangeable {
                     rewrite(hotels, HotelController.hotelsFilename, Hotel.class);
 
                     ArrayList<Reservation> reservations = new ArrayList<>();
-                    ReservationReaderWriter reservrw = new ReservationReaderWriter();
+                    ReservationReaderWriter reservationRW = new ReservationReaderWriter();
                     try(FileReader fr = new FileReader(HotelController.reservationsFilename)) {
-                        reservations = reservrw.read(fr, file);
+                        reservations = reservationRW.read(fr, file);
                     } catch (IOException ex) {
                         ex.fillInStackTrace();
                         System.out.printf("Cannot read from file with name %s!%n", HotelController.roomsFilename);
                     }
 
                     ArrayList<Reservation> toBeReWritten = new ArrayList<>();
-                    for (Integer hotelReservationId : currentHotel.getBookedRooms()) {
+                    for (Integer hotelReservationId : currentHotel.getBookedRoomsIds()) {
                         for (Reservation currReservation : reservations) {
                             if (hotelReservationId == currReservation.getId()) {
                                 toBeReWritten.add(currReservation);
@@ -308,11 +313,12 @@ public class HotelController implements IHotelMangeable {
     }
 
     /**
+     * Cancels a reservation.
      *
-     * @param reservationId
-     * @param currentUser
-     * @param currentHotel
-     * @throws RuntimeException
+     * @param reservationId the ID of the reservation to be canceled
+     * @param currentUser the user who made the reservation
+     * @param currentHotel the hotel where the reservation was made
+     * @throws RuntimeException if the cancellation fails
      */
     @Override
     public void cancelReservation(int reservationId, User currentUser, Hotel currentHotel) throws RuntimeException {
@@ -324,25 +330,25 @@ public class HotelController implements IHotelMangeable {
                     throw new RuntimeException("Sorry, you have enough money! You cannot cancel your reservation!");
                 }
 
-                ReservationReaderWriter rrw = new ReservationReaderWriter();
+                ReservationReaderWriter reservationRW = new ReservationReaderWriter();
                 ArrayList<Reservation> readReservations;
                 File file = new File(HotelController.reservationsFilename);
-                try (FileReader fr = new FileReader(file)) {
-                    readReservations = rrw.read(fr, file);
+                try (FileReader reservationFR = new FileReader(file)) {
+                    readReservations = reservationRW.read(reservationFR, file);
                     if (readReservations.isEmpty()) {
                         System.out.println("There is no read reservations.");
                     } else {
-                        RoomReaderWriter roomrw = new RoomReaderWriter();
+                        RoomReaderWriter roomRW = new RoomReaderWriter();
                         ArrayList<Room> readRooms = new ArrayList<>();
 
                         File roomsFile = new File(HotelController.roomsFilename);
-                        try (FileReader roomfr = new FileReader(roomsFile)) {
-                            readRooms = roomrw.read(roomfr, roomsFile);
+                        try (FileReader roomFR = new FileReader(roomsFile)) {
+                            readRooms = roomRW.read(roomFR, roomsFile);
                         } catch (IOException ex) {
                             ex.fillInStackTrace();
                         }
                         for (Reservation reservation : readReservations) {
-                            for (Integer cr : reservation.getRooms().keySet()) {
+                            for (Integer cr : reservation.getRoomsIds().keySet()) {
                                 if (readRooms.isEmpty()) {
                                     System.out.println("There is no read rooms.");
                                 } else {
@@ -350,7 +356,7 @@ public class HotelController implements IHotelMangeable {
                                         for (Map.Entry<Boolean, ArrayList<LocalDateTime>> isAvailable : room.getBookingAvailability().entrySet()) {
                                             if (reservation.getId() == cr
                                                     && cr == reservationId
-                                                    && reservation.getBookedBy() == currentUser.getId()
+                                                    && reservation.getBookedById() == currentUser.getId()
                                                     && isAvailable.getValue() == isAvailable.getValue()) {
                                                 room.setBooked(false);
                                                 reservation.setCancelled(true);

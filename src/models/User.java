@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.io.*;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
@@ -16,28 +15,36 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * The User class represents a user entity with attributes such as ID, username, email, hashed password,
+ * reservations, and debit card information.
  */
-@JsonPropertyOrder({"id", "username", "email", "password"})
+@JsonPropertyOrder({"id", "username", "email", "password", "reservations", "debitCard"})
 @JsonRootName("User")
 public class User implements Comparable<User> {
-    private static int userNo = 0;
-    private int id;
-    private String username;
-    private String email;
-    private String password;
-    private Map<Integer, Double> reservations;
-    private Map.Entry<Integer, Double> debitCard;
+    private static int userNo = 0; // Static counter for generating unique user IDs
+    private int id; // Unique identifier for the user
+    private String username; // User's username
+    private String email; // User's email address
+    private String password; // User's hashed password
+    private Map<Integer, Double> reservations; // User's reservations mapped by reservation ID and total price
+    private Map.Entry<Integer, Double> debitCard; // User's debit card information
+
+    /**
+     * Generates a unique ID for each user instance.
+     *
+     * @return The generated unique ID.
+     */
     private int generateId() {
         return ++User.userNo;
     }
 
     /**
+     * Static method to hash a given password using PBKDF2 algorithm with HMAC SHA-1.
      *
-     * @param password
-     * @return
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
+     * @param password The password to hash.
+     * @return The hashed password as a hexadecimal string.
+     * @throws InvalidKeySpecException If there's an issue with the provided key specification.
+     * @throws NoSuchAlgorithmException If the requested cryptographic algorithm is not available.
      */
     public static String hashPassword(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {
         SecureRandom random = new SecureRandom();
@@ -57,60 +64,65 @@ public class User implements Comparable<User> {
     }
 
     /**
-     *
+     * Default constructor initializes a user with empty/default values.
      */
     public User() {
         this("", "", "", new ArrayList<>(), new DebitCard());
     }
 
     /**
+     * Constructor initializes a user with basic credentials and default values for reservations and debit card.
      *
-     * @param username
-     * @param email
-     * @param password
+     * @param username The user's username.
+     * @param email    The user's email address.
+     * @param password The user's password (plaintext).
      */
     public User(String username, String email, String password) {
         this(username, email, password, new ArrayList<>(), null);
     }
 
     /**
+     * Constructor initializes a user with all provided attributes.
      *
-     * @param username
-     * @param email
-     * @param password
-     * @param reservations
-     * @param debitCard
+     * @param username     The user's username.
+     * @param email        The user's email address.
+     * @param password     The user's password (plaintext).
+     * @param reservations The user's reservations.
+     * @param debitCard    The user's debit card information.
      */
     public User(String username, String email, String password, ArrayList<Reservation> reservations, DebitCard debitCard) {
         this.setUsername(username);
         this.setEmail(email);
         try {
-            this.setPassword(password, false);
+            this.setPassword(password, false); // Hash the password if needed
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             ex.fillInStackTrace();
-            this.password = null;
+            this.password = null; // In case of hashing failure
         }
+        // Convert reservations to a map of ID to total price
         Map<Integer, Double> rs = new HashMap<>();
-        for(Reservation r : reservations) {
+        for (Reservation r : reservations) {
             rs.put(r.getId(), r.getTotalPrice());
         }
         this.setReservations(rs);
-        if(debitCard != null) {
+        // Set debit card entry if provided, otherwise default to zero values
+        if (debitCard != null) {
             this.setDebitCard(Map.entry(debitCard.getId(), debitCard.getBalance()));
         } else {
             this.setDebitCard(Map.entry(0, 0.0));
         }
-        this.setId(this.generateId());
+        this.setId(this.generateId()); // Generate a unique ID
     }
 
     /**
+     * Constructor for JSON deserialization.
      *
-     * @param id
-     * @param username
-     * @param email
-     * @param password
-     * @param reservations
-     * @param debitCard
+     * @param id           The user's ID.
+     * @param username     The user's username.
+     * @param email        The user's email address.
+     * @param password     The user's password (hashed).
+     * @param reservations The user's reservations.
+     * @param debitCard    The user's debit card information.
      */
     @JsonCreator
     public User(@JsonProperty("id") int id,
@@ -123,22 +135,22 @@ public class User implements Comparable<User> {
         this.setUsername(username);
         this.setEmail(email);
         try {
-            this.setPassword(password, false);
+            this.setPassword(password, false); // Hash the password if needed
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             ex.fillInStackTrace();
-            this.password = null;
+            this.password = null; // In case of hashing failure
         }
-
-        this.setReservations(reservations);
-        this.setDebitCard(debitCard);
+        this.setReservations(reservations); // Set reservations
+        this.setDebitCard(debitCard); // Set debit card information
     }
 
     /**
+     * Constructor initializes a user with specific attributes including a hashed password.
      *
-     * @param id
-     * @param username
-     * @param email
-     * @param password
+     * @param id       The user's ID.
+     * @param username The user's username.
+     * @param email    The user's email address.
+     * @param password The user's password (plaintext).
      */
     public User(int id,
                 String username,
@@ -148,27 +160,32 @@ public class User implements Comparable<User> {
         this.setUsername(username);
         this.setEmail(email);
         try {
-            this.setPassword(password, false);
+            this.setPassword(password, false); // Hash the password if needed
         } catch (NoSuchAlgorithmException | InvalidKeySpecException ex) {
             ex.fillInStackTrace();
-            this.password = null;
+            this.password = null; // In case of hashing failure
         }
-        this.setReservations(new HashMap<>());
-        Map.Entry<Integer, Double> dce = Map.entry(0,0.0);
+        this.setReservations(new HashMap<>()); // Initialize reservations
+        // Initialize debit card entry with default values
+        Map.Entry<Integer, Double> dce = Map.entry(0, 0.0);
         this.setDebitCard(dce);
     }
 
+    // Getters and Setters
+
     /**
+     * Retrieves the user's ID.
      *
-     * @return
+     * @return The user's ID.
      */
     public int getId() {
         return id;
     }
 
     /**
+     * Sets the user's ID.
      *
-     * @param id
+     * @param id The user's ID.
      */
     @JsonSetter("id")
     public void setId(int id) {
@@ -176,16 +193,18 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Retrieves the user's username.
      *
-     * @return
+     * @return The user's username.
      */
     public String getUsername() {
         return username;
     }
 
     /**
+     * Sets the user's username.
      *
-     * @param username
+     * @param username The user's username.
      */
     @JsonSetter("username")
     public void setUsername(String username) {
@@ -193,16 +212,18 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Retrieves the user's email address.
      *
-     * @return
+     * @return The user's email address.
      */
     public String getEmail() {
         return email;
     }
 
     /**
+     * Sets the user's email address.
      *
-     * @param email
+     * @param email The user's email address.
      */
     @JsonSetter("email")
     public void setEmail(String email) {
@@ -210,19 +231,21 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Retrieves the user's hashed password.
      *
-     * @return
+     * @return The user's hashed password.
      */
     public String getPassword() {
         return password;
     }
 
     /**
+     * Sets the user's password, optionally hashing it.
      *
-     * @param password
-     * @param toBeHashed
-     * @throws InvalidKeySpecException
-     * @throws NoSuchAlgorithmException
+     * @param password   The user's password (plaintext or hashed).
+     * @param toBeHashed Flag indicating if the password should be hashed.
+     * @throws InvalidKeySpecException If there's an issue with the provided key specification.
+     * @throws NoSuchAlgorithmException If the requested cryptographic algorithm is not available.
      */
     @JsonSetter("password")
     public void setPassword(String password, boolean toBeHashed) throws InvalidKeySpecException, NoSuchAlgorithmException {
@@ -230,16 +253,18 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Retrieves the user's reservations.
      *
-     * @return
+     * @return The user's reservations.
      */
     public Map<Integer, Double> getReservations() {
         return reservations;
     }
 
     /**
+     * Sets the user's reservations.
      *
-     * @param reservations
+     * @param reservations The user's reservations.
      */
     @JsonSetter("reservations")
     public void setReservations(Map<Integer, Double> reservations) {
@@ -247,25 +272,30 @@ public class User implements Comparable<User> {
     }
 
     /**
+     * Retrieves the user's debit card information.
      *
-     * @return
+     * @return The user's debit card information.
      */
     public Map.Entry<Integer, Double> getDebitCard() {
         return debitCard;
     }
 
     /**
+     * Sets the user's debit card information.
      *
-     * @param debitCard
+     * @param debitCard The user's debit card information.
      */
     @JsonSetter("debitCard")
     public void setDebitCard(Map.Entry<Integer, Double> debitCard) {
         this.debitCard = debitCard;
     }
 
+    // Other Methods
+
     /**
+     * Returns a JSON representation of the user object.
      *
-     * @return
+     * @return A JSON string representing the user object.
      */
     @Override
     public String toString() {
@@ -273,14 +303,15 @@ public class User implements Comparable<User> {
             return new ObjectMapper().writeValueAsString(this);
         } catch (JsonProcessingException ex) {
             ex.fillInStackTrace();
-            return "{}";
+            return "{}"; // Return empty object if serialization fails
         }
     }
 
     /**
+     * Compares this user object with another user object based on their attributes.
      *
-     * @param o the object to be compared.
-     * @return
+     * @param o The user object to compare.
+     * @return An integer representing the comparison result (-1, 0, or 1).
      */
     @Override
     public int compareTo(User o) {

@@ -12,12 +12,17 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
 
+/*
+Application class is start point of the application.
+*/
 public class Application {
     private static final UserController userController = new UserController();
     private static final HotelController hotelController = new HotelController();
     private static final AdminController adminController = new AdminController();
 
     /*
+    Initializes the registration form for new users.
+    return String array containing user input for registration.
     */
     private static String[] initRegistrationForm() {
         String[] credentials = new String[5];
@@ -41,7 +46,9 @@ public class Application {
     }
 
     /*
-     */
+    Initializes the login form for existing users.
+    return String array containing user input for login.
+    */
     private static String[] initLoginForm() {
         String[] credentials = new String[2];
         Scanner scanner = new Scanner(System.in);
@@ -58,7 +65,8 @@ public class Application {
     }
 
     /*
-     */
+    Initializes the main menu for regular users.
+    */
     private static void initMenu() {
         System.out.println("Hotel Room Reservation System");
         System.out.println("-----------------------------");
@@ -70,7 +78,8 @@ public class Application {
     }
 
     /*
-     */
+    Initializes the admin menu for administrative tasks.
+    */
     private static void initAdminMenu() {
         System.out.println("Hotel Room Reservation System / Admin Panel");
         System.out.println("-----------------------------");
@@ -85,7 +94,9 @@ public class Application {
     }
 
     /*
-     */
+    Initializes a sample hotel with rooms and amenities.
+    return Initialized Hotel object.
+    */
     private static Hotel initHotel() {
         // TODO: to read all this data.
         Hotel myHotel = new Hotel("Petya's Hotel", "Malina str. 8, Town-City", new ArrayList<>());
@@ -109,11 +120,11 @@ public class Application {
                 room4 = new Room(4, myHotel.getId(), RoomType.DOUBLE, amenities, 2, 45.00, 90.00, false, bookingAvailabilities, new ArrayList<>()),
                 room5 = new Room(5, myHotel.getId(), RoomType.SUITE, amenities, 2, 35.00, 70.00, false, bookingAvailabilities, new ArrayList<>());
 
-        myHotel.getAllRooms().add(room1.getId());
-        myHotel.getAllRooms().add(room2.getId());
-        myHotel.getAllRooms().add(room3.getId());
-        myHotel.getAllRooms().add(room4.getId());
-        myHotel.getAllRooms().add(room5.getId());
+        myHotel.getAllRoomsIds().add(room1.getId());
+        myHotel.getAllRoomsIds().add(room2.getId());
+        myHotel.getAllRoomsIds().add(room3.getId());
+        myHotel.getAllRoomsIds().add(room4.getId());
+        myHotel.getAllRoomsIds().add(room5.getId());
 
         /*RoomReaderWriter rrw = new RoomReaderWriter();
         File rfile = new File(Application.roomsFilename);
@@ -139,13 +150,18 @@ public class Application {
     }
 
     /*
-     */
+    Displays all rooms of a given hotel.
+    param myHotel The hotel whose rooms are to be displayed.
+    */
     private static void viewRooms(Hotel myHotel) {
         hotelController.viewAllRooms(myHotel);
     }
 
     /*
-     */
+    Parses a date string into LocalDateTime object.
+    param dateString Date string in "yyyy-MM-dd HH:mm" format.
+    return LocalDateTime parsed from dateString.
+    */
     private static LocalDateTime parseDate(String dateString) {
         int year = Integer.parseInt(dateString.substring(0,4));
         int month = Integer.parseInt(dateString.substring(5,7));
@@ -156,7 +172,10 @@ public class Application {
     }
 
     /*
-     */
+    Allows a user to book a room in the hotel.
+    param hotel The hotel where the room is to be booked.
+    param loggedIn The user who is logged in and making the booking.
+    */
     private static void bookRoom(Hotel hotel, User loggedIn) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter from date: ");
@@ -187,13 +206,21 @@ public class Application {
     }
 
     /*
-     */
+    Cancels a booking based on booking ID.
+    param bookingId The ID of the booking to be canceled.
+    param loggedIn The user who is logged in and canceling the booking.
+    param currentHotel The hotel from which the booking is canceled.
+    */
     private static void cancelBooking(int bookingId, User loggedIn, Hotel currentHotel) {
         hotelController.cancelReservation(bookingId, loggedIn, currentHotel);
     }
 
     /*
-     */
+    Executes a user command based on the menu option chosen.
+    param command The command chosen by the user.
+    param hotel The hotel object relevant to the user session.
+    param currentUser The user who is currently logged in.
+    */
     private static void executeCommand(String command, Hotel hotel, User currentUser) {
         Scanner scanner = new Scanner(System.in);
         switch (command) {
@@ -219,7 +246,10 @@ public class Application {
     }
 
     /*
-     */
+    Retrieves RoomType enum based on string input.
+    param type String representation of room type.
+    return Corresponding RoomType enum value.
+    */
     private static RoomType getType(String type) {
         return switch (type) {
             case "Deluxe" -> RoomType.DELUXE;
@@ -231,7 +261,9 @@ public class Application {
     }
 
     /*
-     */
+    Executes an admin command based on the admin menu option chosen.
+    param adminCmd The command chosen by the admin user.
+    */
     private static void executeAdminCommand(String adminCmd) {
         if(adminCmd.equals("Log Out") || adminCmd.equals("END")) {
             System.out.println("Goodbye... You had been successfully logged out!");
@@ -315,7 +347,9 @@ public class Application {
     }
 
     /*
-     */
+    Main method that runs the hotel reservation application.
+    param args Command-line arguments (not used).
+    */
     public static void main(String[] args) {
         Hotel hotel = initHotel();
         System.out.println("Welcome to Hotel Reservation System!");

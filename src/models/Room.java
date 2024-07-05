@@ -6,40 +6,43 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import types.RoomType;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * The Room class represents a hotel room with attributes such as ID, type, amenities, price, occupancy,
+ * booking availability, and reservation IDs.
  */
-@JsonPropertyOrder({"id", "hotel", "type", "amenities", "maximumOccupancy",
-        "pricePerNight", "totalPrice", "isBooked", "bookingAvailability", "inReservations"})
+@JsonPropertyOrder({"id", "hotelId", "type", "amenities", "maximumOccupancy",
+        "pricePerNight", "totalPrice", "isBooked", "bookingAvailability", "inReservationsIds"})
 @JsonRootName("Room")
 public class Room implements Comparable<Room> {
     private static int roomNo = 0;
-    private int id;
-    private Integer hotel;
-    private RoomType type;
-    private ArrayList<String> amenities;
-    private int maximumOccupancy;
-    private double pricePerNight; // price per person
-    private double totalPrice;
-    private boolean isBooked;
-    private Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability;
-    private ArrayList<Integer> inReservations;
+    private int id; // Unique identifier for the room
+    private Integer hotelId; // ID of the hotel that owns the room
+    private RoomType type; // Type of the room (e.g., single, double, suite)
+    private ArrayList<String> amenities; // List of amenities available in the room
+    private int maximumOccupancy; // Maximum number of occupants allowed in the room
+    private double pricePerNight; // Price per night per person
+    private double totalPrice; // Total price for the room
+    private boolean isBooked; // Flag indicating if the room is currently booked
+    private Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability; // Availability of the room for booking
+    private ArrayList<Integer> inReservationsIds; // List of reservation IDs associated with the room
 
+    // Static method to generate a unique ID for each room instance
     private int generateId() {
         return ++Room.roomNo;
     }
 
     /**
-     *
+     * Default constructor initializes a room with default values.
      */
     public Room() {
         this.setType(RoomType.UNKNOWN);
-        this.setHotel(0);
+        this.setHotelId(0);
         this.setAmenities(new ArrayList<>());
         this.setMaximumOccupancy(0);
         this.setPricePerNight(0.0);
@@ -50,53 +53,28 @@ public class Room implements Comparable<Room> {
         dates.add(LocalDateTime.now());
         isBooked.put(false, dates);
         this.setBookingAvailability(isBooked);
-        this.setInReservations(new ArrayList<>());
+        this.setInReservationsIds(new ArrayList<>());
         this.setId(this.generateId());
     }
 
     /**
+     * Constructor initializes a room with specified attributes.
      *
-     * @param hotel
-     * @param type
-     * @param amenities
-     * @param maximumOccupancy
-     * @param isBooked
-     * @param bookingAvailability
-     * @param pricePerNight
-     * @param inReservations
-     */
-    public Room(int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
-                boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
-                double pricePerNight, ArrayList<Integer> inReservations) {
-        this.setHotel(hotel);
-        this.setType(type);
-        this.setAmenities(amenities);
-        this.setMaximumOccupancy(maximumOccupancy);
-        this.setPricePerNight(pricePerNight);
-        this.setTotalPrice(pricePerNight * maximumOccupancy);
-        this.setBooked(isBooked);
-        this.setBookingAvailability(bookingAvailability);
-        this.setInReservations(inReservations);
-        this.setId(this.generateId());
-    }
-
-    /**
-     *
-     * @param id
-     * @param hotel
-     * @param type
-     * @param amenities
-     * @param maximumOccupancy
-     * @param isBooked
-     * @param bookingAvailability
-     * @param pricePerNight
-     * @param inReservations
+     * @param id                 ID of the current room.
+     * @param hotel              ID of the hotel that owns the room.
+     * @param type               Type of the room.
+     * @param amenities          List of amenities available in the room.
+     * @param maximumOccupancy   Maximum number of occupants allowed in the room.
+     * @param isBooked           Flag indicating if the room is currently booked.
+     * @param bookingAvailability Availability of the room for booking.
+     * @param pricePerNight      Price per night per person.
+     * @param inReservations     List of reservation IDs associated with the room.
      */
     public Room(int id, int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
                 boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
                 double pricePerNight, ArrayList<Integer> inReservations) {
         this.setId(id);
-        this.setHotel(hotel);
+        this.setHotelId(hotel);
         this.setType(type);
         this.setAmenities(amenities);
         this.setMaximumOccupancy(maximumOccupancy);
@@ -104,25 +82,52 @@ public class Room implements Comparable<Room> {
         this.setTotalPrice(pricePerNight * maximumOccupancy);
         this.setBooked(isBooked);
         this.setBookingAvailability(bookingAvailability);
-        this.setInReservations(inReservations);
+        this.setInReservationsIds(inReservations);
     }
 
     /**
+     * Constructor initializes a room with specified attributes.
      *
-     * @param id
-     * @param hotel
-     * @param type
-     * @param amenities
-     * @param maximumOccupancy
-     * @param pricePerNight
-     * @param totalPrice
-     * @param isBooked
-     * @param bookingAvailability
-     * @param inReservations
+     * @param hotel              ID of the hotel that owns the room.
+     * @param type               Type of the room.
+     * @param amenities          List of amenities available in the room.
+     * @param maximumOccupancy   Maximum number of occupants allowed in the room.
+     * @param isBooked           Flag indicating if the room is currently booked.
+     * @param bookingAvailability Availability of the room for booking.
+     * @param pricePerNight      Price per night per person.
+     * @param inReservations     List of reservation IDs associated with the room.
+     */
+    public Room(int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
+                boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
+                double pricePerNight, ArrayList<Integer> inReservations) {
+        this.setHotelId(hotel);
+        this.setType(type);
+        this.setAmenities(amenities);
+        this.setMaximumOccupancy(maximumOccupancy);
+        this.setPricePerNight(pricePerNight);
+        this.setTotalPrice(pricePerNight * maximumOccupancy);
+        this.setBooked(isBooked);
+        this.setBookingAvailability(bookingAvailability);
+        this.setInReservationsIds(inReservations);
+        this.setId(this.generateId());
+    }
+
+    /**
+     * Constructor initializes a room with specified attributes including an ID.
+     *
+     * @param id                 Unique identifier for the room.
+     * @param hotel              ID of the hotel that owns the room.
+     * @param type               Type of the room.
+     * @param amenities          List of amenities available in the room.
+     * @param maximumOccupancy   Maximum number of occupants allowed in the room.
+     * @param isBooked           Flag indicating if the room is currently booked.
+     * @param bookingAvailability Availability of the room for booking.
+     * @param pricePerNight      Price per night per person.
+     * @param inReservations     List of reservation IDs associated with the room.
      */
     @JsonCreator
     public Room(@JsonProperty("id") int id,
-                @JsonProperty("hotel") Integer hotel,
+                @JsonProperty("hotelId") Integer hotel,
                 @JsonProperty("type") RoomType type,
                 @JsonProperty("amenities") ArrayList<String> amenities,
                 @JsonProperty("maximumOccupancy") int maximumOccupancy,
@@ -130,9 +135,9 @@ public class Room implements Comparable<Room> {
                 @JsonProperty("totalPrice") double totalPrice,
                 @JsonProperty("isBooked") boolean isBooked,
                 @JsonProperty("bookingAvailability") Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
-                @JsonProperty("inReservations") ArrayList<Integer> inReservations) {
+                @JsonProperty("inReservationsIds") ArrayList<Integer> inReservations) {
         this.setId(id);
-        this.setHotel(hotel);
+        this.setHotelId(hotel);
         this.setType(type);
         this.setAmenities(amenities);
         this.setMaximumOccupancy(maximumOccupancy);
@@ -140,182 +145,107 @@ public class Room implements Comparable<Room> {
         this.setTotalPrice(totalPrice);
         this.setBooked(isBooked);
         this.setBookingAvailability(bookingAvailability);
-        this.setInReservations(inReservations);
+        this.setInReservationsIds(inReservations);
     }
 
-    /**
-     *
-     * @return
-     */
+    // Getters and Setters
+
     public int getId() {
         return id;
     }
 
-    /**
-     *
-     * @param id
-     */
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
 
-    /**
-     *
-     * @return
-     */
-    public Integer getHotel() {
-        return hotel;
+    public Integer getHotelId() {
+        return hotelId;
     }
 
-    /**
-     *
-     * @param hotel
-     */
-    @JsonSetter("hotel")
-    public void setHotel(Integer hotel) {
-        this.hotel = hotel;
+    @JsonSetter("hotelId")
+    public void setHotelId(Integer hotelId) {
+        this.hotelId = hotelId;
     }
 
-    /**
-     *
-     * @return
-     */
     public RoomType getType() {
         return type;
     }
 
-    /**
-     *
-     * @param type
-     */
     @JsonSetter("type")
     public void setType(RoomType type) {
         this.type = type;
     }
 
-    /**
-     *
-     * @return
-     */
     public ArrayList<String> getAmenities() {
         return amenities;
     }
 
-    /**
-     *
-     * @param amenities
-     */
     @JsonSetter("amenities")
     public void setAmenities(ArrayList<String> amenities) {
         this.amenities = amenities;
     }
 
-    /**
-     *
-     * @return
-     */
     public int getMaximumOccupancy() {
         return maximumOccupancy;
     }
 
-    /**
-     *
-     * @param maximumOccupancy
-     */
     @JsonSetter("maximumOccupancy")
     public void setMaximumOccupancy(int maximumOccupancy) {
         this.maximumOccupancy = maximumOccupancy;
     }
 
-    /**
-     *
-     * @return
-     */
     public double getPricePerNight() {
         return pricePerNight;
     }
 
-    /**
-     *
-     * @param pricePerNight
-     */
     @JsonSetter("pricePerNight")
     public void setPricePerNight(double pricePerNight) {
         this.pricePerNight = pricePerNight;
     }
 
-    /**
-     *
-     * @return
-     */
     public double getTotalPrice() {
         return totalPrice;
     }
 
-    /**
-     *
-     * @param totalPrice
-     */
     @JsonSetter("totalPrice")
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
 
-    /**
-     *
-     * @return
-     */
     public boolean isBooked() {
         return isBooked;
     }
 
-    /**
-     *
-     * @param booked
-     */
     @JsonSetter("isBooked")
     public void setBooked(boolean booked) {
-        this.isBooked = booked;
+        isBooked = booked;
     }
 
-    /**
-     *
-     * @return
-     */
     public Map<Boolean, ArrayList<LocalDateTime>> getBookingAvailability() {
         return bookingAvailability;
     }
 
-    /**
-     *
-     * @param bookingAvailability
-     */
     @JsonSetter("bookingAvailability")
     public void setBookingAvailability(Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability) {
         this.bookingAvailability = bookingAvailability;
     }
 
-    /**
-     *
-     * @return
-     */
-    public ArrayList<Integer> getInReservations() {
-        return inReservations;
+    public ArrayList<Integer> getInReservationsIds() {
+        return inReservationsIds;
     }
 
-    /**
-     *
-     * @param inReservations
-     */
-    @JsonSetter("inReservations")
-    public void setInReservations(ArrayList<Integer> inReservations) {
-        this.inReservations = inReservations;
+    @JsonSetter("inReservationsIds")
+    public void setInReservationsIds(ArrayList<Integer> inReservationsIds) {
+        this.inReservationsIds = inReservationsIds;
     }
 
+    // Other Methods
+
     /**
+     * Converts the room object to a JSON string representation.
      *
-     * @return
+     * @return The JSON string representation of the room.
      */
     @Override
     public String toString() {
@@ -332,73 +262,90 @@ public class Room implements Comparable<Room> {
     }
 
     /**
+     * Compares this room to another room for ordering based on ID, type, amenities, occupancy, and availability.
      *
-     * @param o the object to be compared.
-     * @return
+     * @param o The other room to compare to.
+     * @return A negative integer, zero, or a positive integer as this room is less than, equal to, or greater than the specified room.
      */
     @Override
     public int compareTo(Room o) {
-        int firstCondition = 0, secondCondition = 0, thirdCondition = 0, fourthCondition = 0;
-        if(this.getId() < o.getId() && this.getType().compareTo(o.getType()) < 0
-            && this.getMaximumOccupancy() < o.getMaximumOccupancy() && this.getHotel() < o.getHotel()
-            && this.getPricePerNight() < o.getPricePerNight() && this.getTotalPrice() < o.getTotalPrice()) {
-            firstCondition = -1;
-        } else if (this.getId() == o.getId() && this.getType().compareTo(o.getType()) == 0
-                && this.getMaximumOccupancy() == o.getMaximumOccupancy() && this.getHotel().compareTo(o.getHotel()) == 0
-                && this.getPricePerNight() == o.getPricePerNight() && this.getTotalPrice() == o.getTotalPrice()) {
-            firstCondition = 0;
-        } else {
-            firstCondition = 1;
-        }
-
-        for(String currAmenity : this.getAmenities()) {
-            for(String otherAmenity : o.getAmenities()) {
-                if (currAmenity.compareTo(otherAmenity) < 0) {
-                    secondCondition = -1;
-                } else if(currAmenity.compareTo(otherAmenity) == 0) {
-                    secondCondition = 0;
-                } else {
-                    secondCondition = 1;
-                }
-            }
-        }
-
-        for(int currReservationId : this.getInReservations()) {
-            for(int otherReservationId : o.getInReservations()) {
-                if(currReservationId < otherReservationId) {
-                    thirdCondition = -1;
-                } else if (currReservationId == otherReservationId) {
-                    thirdCondition = 0;
-                } else {
-                    thirdCondition = 1;
-                }
-            }
-        }
-
-        for(Map.Entry<Boolean, ArrayList<LocalDateTime>> currRoomBookingAvailability : this.getBookingAvailability().entrySet()) {
-            for(Map.Entry<Boolean, ArrayList<LocalDateTime>> otherRoomBookingAvailability : o.getBookingAvailability().entrySet()) {
-                for(LocalDateTime currDT : currRoomBookingAvailability.getValue()) {
-                    for(LocalDateTime otherDT : otherRoomBookingAvailability.getValue()) {
-                        if (currRoomBookingAvailability.getKey().compareTo(otherRoomBookingAvailability.getKey()) < 0
-                            && currDT.isBefore(otherDT)) {
-                            fourthCondition = -1;
-                        } else if (currRoomBookingAvailability.getKey().compareTo(otherRoomBookingAvailability.getKey()) == 0
-                            && currDT.equals(otherDT)) {
-                            fourthCondition = 0;
-                        } else {
-                            fourthCondition = 1;
+        // Compare ID, type, maximum occupancy, hotel ID, price per night, and total price
+        int firstCondition = Integer.compare(this.getId(), o.getId());
+        if (firstCondition == 0) {
+            firstCondition = this.getType().compareTo(o.getType());
+            if (firstCondition == 0) {
+                firstCondition = Integer.compare(this.getMaximumOccupancy(), o.getMaximumOccupancy());
+                if (firstCondition == 0) {
+                    firstCondition = Integer.compare(this.getHotelId(), o.getHotelId());
+                    if (firstCondition == 0) {
+                        firstCondition = Double.compare(this.getPricePerNight(), o.getPricePerNight());
+                        if (firstCondition == 0) {
+                            firstCondition = Double.compare(this.getTotalPrice(), o.getTotalPrice());
                         }
                     }
                 }
             }
         }
 
-        if(firstCondition < 0 || secondCondition < 0 || thirdCondition < 0 || fourthCondition < 0) {
-            return -1;
-        } else if (firstCondition == 0 && secondCondition == 0 && thirdCondition == 0 && fourthCondition == 0) {
-            return 0;
-        } else {
-            return 1;
+        // Compare amenities
+        if (firstCondition == 0) {
+            ArrayList<String> thisAmenities = this.getAmenities();
+            ArrayList<String> otherAmenities = o.getAmenities();
+            for (int i = 0; i < Math.min(thisAmenities.size(), otherAmenities.size()); i++) {
+                firstCondition = thisAmenities.get(i).compareTo(otherAmenities.get(i));
+                if (firstCondition != 0) {
+                    break;
+                }
+            }
+            if (firstCondition == 0) {
+                firstCondition = Integer.compare(thisAmenities.size(), otherAmenities.size());
+            }
         }
+
+        // Compare inReservationsIds
+        if (firstCondition == 0) {
+            ArrayList<Integer> thisReservations = this.getInReservationsIds();
+            ArrayList<Integer> otherReservations = o.getInReservationsIds();
+            for (int i = 0; i < Math.min(thisReservations.size(), otherReservations.size()); i++) {
+                firstCondition = Integer.compare(thisReservations.get(i), otherReservations.get(i));
+                if (firstCondition != 0) {
+                    break;
+                }
+            }
+            if (firstCondition == 0) {
+                firstCondition = Integer.compare(thisReservations.size(), otherReservations.size());
+            }
+        }
+
+        // Compare bookingAvailability
+        if (firstCondition == 0) {
+            Map<Boolean, ArrayList<LocalDateTime>> thisBooking = this.getBookingAvailability();
+            Map<Boolean, ArrayList<LocalDateTime>> otherBooking = o.getBookingAvailability();
+            firstCondition = Integer.compare(thisBooking.size(), otherBooking.size());
+            if (firstCondition == 0) {
+                for (Map.Entry<Boolean, ArrayList<LocalDateTime>> thisEntry : thisBooking.entrySet()) {
+                    Boolean key = thisEntry.getKey();
+                    ArrayList<LocalDateTime> thisDates = thisEntry.getValue();
+                    ArrayList<LocalDateTime> otherDates = otherBooking.get(key);
+                    firstCondition = key.compareTo(otherBooking.containsKey(key));
+                    if (firstCondition == 0) {
+                        for (int i = 0; i < Math.min(thisDates.size(), otherDates.size()); i++) {
+                            firstCondition = thisDates.get(i).compareTo(otherDates.get(i));
+                            if (firstCondition != 0) {
+                                break;
+                            }
+                        }
+                        if (firstCondition == 0) {
+                            firstCondition = Integer.compare(thisDates.size(), otherDates.size());
+                        }
+                    }
+                    if (firstCondition != 0) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return firstCondition;
     }
 }

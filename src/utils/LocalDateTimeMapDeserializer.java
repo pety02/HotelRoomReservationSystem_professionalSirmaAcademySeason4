@@ -14,18 +14,20 @@ import java.util.Iterator;
 import java.util.Map;
 
 /**
- *
+ * LocalDateTimeMapDeserializer class deserializes correctly Map of Map.Entry<LocalDateTime, LocalDateTime> and Boolean.
+ * It represents deserialized date time interval.
  */
 public class LocalDateTimeMapDeserializer extends JsonDeserializer<Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean>> {
     /**
+     * Deserializes JSON content into a map of date ranges (represented as LocalDateTime pairs) mapped to Boolean values.
      *
-     * @param jp
-     * @param ctxt
-     * @return
-     * @throws IOException
+     * @param jp    The JsonParser object used for reading JSON content.
+     * @param context  The DeserializationContext object providing contextual information during deserialization.
+     * @return A map where each key is a date range (start-end) and the value is a Boolean indicating a status.
+     * @throws IOException If there's an issue reading from the JsonParser.
      */
     @Override
-    public Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> deserialize(JsonParser jp, DeserializationContext ctxt)
+    public Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> deserialize(JsonParser jp, DeserializationContext context)
             throws IOException {
         Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> result = new HashMap<>();
         JsonNode node = jp.getCodec().readTree(jp);

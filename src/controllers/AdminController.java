@@ -18,43 +18,28 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 /**
- *
+ * The AdminController class implements the IAdminManageable interface and provides methods for managing hotels, reservations, and rooms.
+ * This class handles reading and writing operations for hotels, reservations, and rooms from/to text files.
  */
 public class AdminController implements IAdminManageable {
     private static final String hotelsFilename = "hotels.txt";
     private static final String reservationsFilename = "reservations.txt";
     private static final String roomsFilename = "rooms.txt";
 
-    /**
-     *
-     */
-    @Override
-    public void showAllHotels() {
-        File file = new File(AdminController.hotelsFilename);
-        HotelReaderWriter hrw = new HotelReaderWriter();
-        ArrayList<Hotel> readHotels = new ArrayList<>();
-        try (FileReader fr = new FileReader(file)) {
-            readHotels = hrw.read(fr, file);
+    private static ArrayList<Room> readAllRooms() {
+        File roomsFile = new File(AdminController.roomsFilename);
+        RoomReaderWriter roomRW = new RoomReaderWriter();
+        ArrayList<Room> readRooms = new ArrayList<>();
+        try (FileReader fr = new FileReader(roomsFile)) {
+            readRooms = roomRW.read(fr, roomsFile);
         } catch (IOException ex) {
             ex.fillInStackTrace();
-            System.out.printf("Cannot read from file with name %s!%n", AdminController.hotelsFilename);
+            System.out.printf("Cannot read from file with name %s!%n", roomsFile.getName());
         }
-
-        System.out.println("All Hotels Listed:");
-        System.out.println("------------------");
-        for(Hotel currHotel : readHotels) {
-            System.out.printf("ID: %d | Name: %s | Address: %s | All Rooms: %d | Booked Rooms: %d | Incomes: %.2f%n",
-                    currHotel.getId(), currHotel.getName(), currHotel.getAddress(), currHotel.getAllRooms().size(),
-                    currHotel.getBookedRooms().size(), currHotel.getIncomes());
-        }
+        return readRooms;
     }
 
-    /**
-     *
-     * @param hotelId
-     */
-    @Override
-    public void viewAllBookings(int hotelId) {
+    private static ArrayList<Reservation> readAllReservations() {
         File reservationFile = new File(AdminController.reservationsFilename);
         ReservationReaderWriter reservationRW = new ReservationReaderWriter();
         ArrayList<Reservation> readReservations = new ArrayList<>();
@@ -64,24 +49,42 @@ public class AdminController implements IAdminManageable {
             ex.fillInStackTrace();
             System.out.printf("Cannot read from file with name %s!%n", reservationFile.getName());
         }
+        return readReservations;
+    }
 
-        File roomsFile = new File(AdminController.roomsFilename);
-        RoomReaderWriter roomRW = new RoomReaderWriter();
-        ArrayList<Room> readRooms = new ArrayList<>();
-        try (FileReader fr = new FileReader(roomsFile)) {
-            readRooms = roomRW.read(fr, roomsFile);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            System.out.printf("Cannot read from file with name %s!%n", reservationFile.getName());
+    /**
+     * Displays all hotels by reading from the hotels text file.
+     */
+    @Override
+    public void showAllHotels() {
+        ArrayList<Hotel> readHotels = readAllHotels();
+
+        System.out.println("All Hotels Listed:");
+        System.out.println("------------------");
+        for (Hotel currHotel : readHotels) {
+            System.out.printf("ID: %d | Name: %s | Address: %s | All Rooms: %d | Booked Rooms: %d | Incomes: %.2f%n",
+                    currHotel.getId(), currHotel.getName(), currHotel.getAddress(), currHotel.getAllRoomsIds().size(),
+                    currHotel.getBookedRoomsIds().size(), currHotel.getIncomes());
         }
+    }
 
-        for(Reservation currReservation : readReservations) {
-            for(Integer currReservationRoomId : currReservation.getRooms().keySet()) {
+    /**
+     * Displays all bookings for a given hotel by reading from the reservations and rooms text files.
+     *
+     * @param hotelId the ID of the hotel
+     */
+    @Override
+    public void viewAllBookings(int hotelId) {
+        ArrayList<Reservation> readReservations = readAllReservations();
+        ArrayList<Room> readRooms = readAllRooms();
+
+        for (Reservation currReservation : readReservations) {
+            for (Integer currReservationRoomId : currReservation.getRoomsIds().keySet()) {
                 for (Room currRoom : readRooms) {
-                    if (currRoom.getId() == currReservationRoomId && currRoom.getHotel() == hotelId) {
+                    if (currRoom.getId() == currReservationRoomId && currRoom.getHotelId() == hotelId) {
                         System.out.printf("ID: %d | From: %s | To: %s | Rooms: %d | Total Price: %.2f$ | Cancellation Fees: %.2f$ | Status: %s%n",
                                 currReservation.getId(), currReservation.getFromDate(), currReservation.getToDate(),
-                                currRoom.getInReservations().size(), currReservation.getTotalPrice(), currReservation.getCancellationFees(),
+                                currRoom.getInReservationsIds().size(), currReservation.getTotalPrice(), currReservation.getCancellationFees(),
                                 currReservation.isCancelled() ? "cancelled" : "active");
                     }
                 }
@@ -90,13 +93,26 @@ public class AdminController implements IAdminManageable {
     }
 
     /**
+     * Retrieves the total income for a given hotel by reading from the hotels text file.
      *
-     * @param hotelId
-     * @return
-     * @throws RuntimeException
+     * @param hotelId the ID of the hotel
+     * @return the total income of the hotel
+     * @throws RuntimeException if the hotel is not found
      */
     @Override
     public double getTotalIncome(int hotelId) throws RuntimeException {
+        ArrayList<Hotel> readHotels = readAllHotels();
+
+        for (Hotel currentHotel : readHotels) {
+            if (currentHotel.getId() == hotelId) {
+                return currentHotel.getIncomes();
+            }
+        }
+
+        throw new RuntimeException("Hotel not found!");
+    }
+
+    private ArrayList<Hotel> readAllHotels() {
         File file = new File(AdminController.hotelsFilename);
         HotelReaderWriter hrw = new HotelReaderWriter();
         ArrayList<Hotel> readHotels = new ArrayList<>();
@@ -107,47 +123,25 @@ public class AdminController implements IAdminManageable {
             System.out.printf("Cannot read from file with name %s!%n", AdminController.hotelsFilename);
         }
 
-        for(Hotel currentHotel : readHotels) {
-            if(currentHotel.getId() == hotelId) {
-                return currentHotel.getIncomes();
-            }
-        }
-
-        throw new RuntimeException("Hotel not found!");
+        return readHotels;
     }
 
     /**
+     * Retrieves the total cancellation fees for a given hotel by reading from the reservations and rooms text files.
      *
-     * @param hotelId
-     * @return
+     * @param hotelId the ID of the hotel
+     * @return the total cancellation fees for the hotel
      */
     @Override
     public double getCancellationFees(int hotelId) {
-        File reservationFile = new File(AdminController.reservationsFilename);
-        ReservationReaderWriter reservationRW = new ReservationReaderWriter();
-        ArrayList<Reservation> readReservations = new ArrayList<>();
-        try (FileReader fr = new FileReader(reservationFile)) {
-            readReservations = reservationRW.read(fr, reservationFile);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            System.out.printf("Cannot read from file with name %s!%n", reservationFile.getName());
-        }
-
-        File roomsFile = new File(AdminController.roomsFilename);
-        RoomReaderWriter roomRW = new RoomReaderWriter();
-        ArrayList<Room> readRooms = new ArrayList<>();
-        try (FileReader fr = new FileReader(roomsFile)) {
-            readRooms = roomRW.read(fr, roomsFile);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            System.out.printf("Cannot read from file with name %s!%n", reservationFile.getName());
-        }
+        ArrayList<Reservation> readReservations = readAllReservations();
+        ArrayList<Room> readRooms = readAllRooms();
 
         int cancelledReservationsCount = 0;
-        for(Reservation currReservation : readReservations) {
-            for(Integer currReservationRoomId : currReservation.getRooms().keySet()) {
+        for (Reservation currReservation : readReservations) {
+            for (Integer currReservationRoomId : currReservation.getRoomsIds().keySet()) {
                 for (Room currRoom : readRooms) {
-                    if (currRoom.getId() == currReservationRoomId && currRoom.getHotel() == hotelId && currReservation.isCancelled()) {
+                    if (currRoom.getId() == currReservationRoomId && currRoom.getHotelId() == hotelId && currReservation.isCancelled()) {
                         cancelledReservationsCount++;
                     }
                 }
@@ -158,14 +152,15 @@ public class AdminController implements IAdminManageable {
     }
 
     /**
+     * Adds a new room to a given hotel by writing to the rooms text file.
      *
-     * @param roomId
-     * @param hotelId
-     * @param type
-     * @param amenities
-     * @param maximumOccupancy
-     * @param pricePerNight
-     * @return
+     * @param roomId           the ID of the room
+     * @param hotelId          the ID of the hotel
+     * @param type             the type of the room
+     * @param amenities        the amenities provided in the room
+     * @param maximumOccupancy the maximum occupancy of the room
+     * @param pricePerNight    the price per night for the room
+     * @return true if the room is successfully added
      */
     @Override
     public boolean addRoom(int roomId, int hotelId, RoomType type, ArrayList<String> amenities, int maximumOccupancy, double pricePerNight) {
@@ -178,34 +173,28 @@ public class AdminController implements IAdminManageable {
     }
 
     /**
+     * Displays all rooms for a given hotel by reading from the rooms text file.
      *
-     * @param hotelId
+     * @param hotelId the ID of the hotel
      */
     @Override
     public void showAllHotelRooms(int hotelId) {
-        File roomsFile = new File(AdminController.roomsFilename);
-        RoomReaderWriter roomRW = new RoomReaderWriter();
-        ArrayList<Room> readRooms = new ArrayList<>();
-        try (FileReader fr = new FileReader(roomsFile)) {
-            readRooms = roomRW.read(fr, roomsFile);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            System.out.printf("Cannot read from file with name %s!%n", roomsFile.getName());
-        }
+        ArrayList<Room> readRooms = readAllRooms();
 
-        for(Room currRoom : readRooms) {
-            if(currRoom.getHotel() == hotelId) {
+        for (Room currRoom : readRooms) {
+            if (currRoom.getHotelId() == hotelId) {
                 System.out.printf("ID: %d | Hotel ID: %d | Type: %s | Amenities: %s | Max Occupancy: %d | Price Per Night (per person): %.2f$ | Total Price: %.2f$ | Status: %s%n",
-                        currRoom.getId(), currRoom.getHotel(), currRoom.getType(), Arrays.toString(currRoom.getAmenities().toArray()),
+                        currRoom.getId(), currRoom.getHotelId(), currRoom.getType(), Arrays.toString(currRoom.getAmenities().toArray()),
                         currRoom.getMaximumOccupancy(), currRoom.getPricePerNight(), currRoom.getTotalPrice(), currRoom.isBooked() ? "booked" : "free");
             }
         }
     }
 
     /**
+     * Removes a room by its ID by modifying the rooms text file.
      *
-     * @param roomId
-     * @return
+     * @param roomId the ID of the room
+     * @return true if the room is found and removed, false otherwise
      */
     @Override
     public boolean removeRoom(int roomId) {
@@ -221,17 +210,17 @@ public class AdminController implements IAdminManageable {
         }
 
         ArrayList<Room> toBeWritten = new ArrayList<>();
-        for(Room currRoom : readRooms) {
-            if(currRoom.getId() == roomId) {
+        for (Room currRoom : readRooms) {
+            if (currRoom.getId() == roomId) {
                 found = true;
                 continue;
             }
             toBeWritten.add(currRoom);
         }
 
-        if(found && roomsFile.delete()) {
+        if (found && roomsFile.delete()) {
             roomsFile = new File(AdminController.roomsFilename);
-            for(Room currRoom : toBeWritten) {
+            for (Room currRoom : toBeWritten) {
                 roomRW.write(currRoom, roomsFile.getName());
             }
         }
@@ -240,14 +229,15 @@ public class AdminController implements IAdminManageable {
     }
 
     /**
+     * Updates the details of a room by its ID by modifying the rooms text file.
      *
-     * @param roomId
-     * @param hotelId
-     * @param type
-     * @param amenities
-     * @param maximumOccupancy
-     * @param pricePerNight
-     * @return
+     * @param roomId           the ID of the room
+     * @param hotelId          the ID of the hotel
+     * @param type             the type of the room
+     * @param amenities        the amenities provided in the room
+     * @param maximumOccupancy the maximum occupancy of the room
+     * @param pricePerNight    the price per night for the room
+     * @return true if the room is found and updated, false otherwise
      */
     @Override
     public boolean updateRoom(int roomId, int hotelId, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
@@ -263,10 +253,10 @@ public class AdminController implements IAdminManageable {
             System.out.printf("Cannot read from file with name %s!%n", roomsFile.getName());
         }
 
-        for(Room currRoom : readRooms) {
-            if(currRoom.getId() == roomId) {
+        for (Room currRoom : readRooms) {
+            if (currRoom.getId() == roomId) {
                 found = true;
-                currRoom.setHotel(hotelId);
+                currRoom.setHotelId(hotelId);
                 currRoom.setType(type);
                 currRoom.setAmenities(amenities);
                 currRoom.setMaximumOccupancy(maximumOccupancy);
@@ -276,9 +266,9 @@ public class AdminController implements IAdminManageable {
             }
         }
 
-        if(found && roomsFile.delete()) {
+        if (found && roomsFile.delete()) {
             roomsFile = new File(AdminController.roomsFilename);
-            for(Room currRoom : readRooms) {
+            for (Room currRoom : readRooms) {
                 roomRW.write(currRoom, roomsFile.getName());
             }
         }

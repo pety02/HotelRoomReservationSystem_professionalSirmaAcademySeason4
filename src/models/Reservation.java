@@ -1,46 +1,53 @@
 package models;
+
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.*;
-
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.util.StdDateFormat;
 import utils.LocalDateTimeMapDeserializer;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
+ * The Reservation class represents a hotel reservation with fields for ID, dates, booked rooms,
+ * booking user ID, cancellation fees, total price, and cancellation status.
+ * It supports JSON serialization/deserialization and implements Comparable for sorting.
  */
-@JsonPropertyOrder({"id", "fromDate", "toDate", "rooms", "bookedBy", "cancellationFees", "totalPrice", "isCancelled"})
+@JsonPropertyOrder({"id", "fromDate", "toDate", "roomsIds", "bookedById", "cancellationFees", "totalPrice", "isCancelled"})
 @JsonRootName("Reservation")
 public class Reservation implements Comparable<Reservation> {
-    private static int reservationNo = 0;
-    private int id;
-    private LocalDateTime fromDate;
-    private LocalDateTime toDate;
-    private Map<Integer, Double> rooms;
-    private int bookedBy;
-    private double cancellationFees;
-    private double totalPrice;
-    private boolean isCancelled;
+    private static int reservationNo = 0; // Static counter for generating unique reservation IDs
+    private int id; // Unique identifier for the reservation
+    private LocalDateTime fromDate; // Start date of the reservation
+    private LocalDateTime toDate; // End date of the reservation
+    private Map<Integer, Double> roomsIds; // Map of room IDs to booking prices
+    private int bookedById; // ID of the user who booked the reservation
+    private double cancellationFees; // Fees charged if the reservation is cancelled
+    private double totalPrice; // Total price of the reservation
+    private boolean isCancelled; // Flag indicating if the reservation is cancelled
 
+    /**
+     * Generates a unique ID for the reservation.
+     * Note: This method is for learning purposes and may not ensure unique IDs in a real-world scenario.
+     *
+     * @return A unique ID.
+     */
     private int generateId() {
-        // It is the good way only for learning purposes because
-        // it may make the program to generate not unique ids.
         return ++Reservation.reservationNo;
     }
 
     /**
-     *
+     * Default constructor that initializes a new reservation with default values.
      */
     public Reservation() {
         this.setFromDate(LocalDateTime.now());
         this.setToDate(LocalDateTime.now());
-        this.setRooms(new HashMap<>());
-        this.setBookedBy(0);
+        this.setRoomsIds(new HashMap<>());
+        this.setBookedById(0);
         this.setCancellationFees(0.0);
         this.setTotalPrice(0.0);
         this.setCancelled(false);
@@ -48,13 +55,15 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Constructor that initializes a new reservation with specified dates, booked rooms, booking user,
+     * cancellation fees, and cancellation status.
      *
-     * @param fromDate
-     * @param toDate
-     * @param rooms
-     * @param bookedBy
-     * @param cancellationFees
-     * @param isCancelled
+     * @param fromDate         The start date of the reservation.
+     * @param toDate           The end date of the reservation.
+     * @param rooms            The map of room IDs to booking prices.
+     * @param bookedBy         The user who booked the reservation.
+     * @param cancellationFees The fees charged if the reservation is cancelled.
+     * @param isCancelled      The cancellation status of the reservation.
      */
     public Reservation(LocalDateTime fromDate,
                        LocalDateTime toDate,
@@ -64,8 +73,8 @@ public class Reservation implements Comparable<Reservation> {
                        boolean isCancelled) {
         this.setFromDate(fromDate);
         this.setToDate(toDate);
-        this.setRooms(rooms);
-        this.setBookedBy(bookedBy.getId());
+        this.setRoomsIds(rooms);
+        this.setBookedById(bookedBy.getId());
         this.setCancellationFees(cancellationFees);
         int days = toDate.getDayOfYear() - fromDate.getDayOfYear();
         this.setTotalPrice(this.calculateTotalPrice(days));
@@ -74,11 +83,12 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Constructor that initializes a new reservation with specified dates, cancellation fees, and cancellation status.
      *
-     * @param fromDate
-     * @param toDate
-     * @param cancellationFees
-     * @param isCancelled
+     * @param fromDate         The start date of the reservation.
+     * @param toDate           The end date of the reservation.
+     * @param cancellationFees The fees charged if the reservation is cancelled.
+     * @param isCancelled      The cancellation status of the reservation.
      */
     public Reservation(LocalDateTime fromDate,
                        LocalDateTime toDate,
@@ -87,8 +97,8 @@ public class Reservation implements Comparable<Reservation> {
         this.setId(this.generateId());
         this.setFromDate(fromDate);
         this.setToDate(toDate);
-        this.setRooms(new HashMap<>());
-        this.setBookedBy(0);
+        this.setRoomsIds(new HashMap<>());
+        this.setBookedById(0);
         this.setCancellationFees(cancellationFees);
         int days = toDate.getDayOfYear() - fromDate.getDayOfYear();
         this.setTotalPrice(this.calculateTotalPrice(days));
@@ -96,46 +106,49 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Constructor for deserializing a Reservation object from JSON.
      *
-     * @param id
-     * @param fromDate
-     * @param toDate
-     * @param rooms
-     * @param bookedBy
-     * @param cancellationFees
-     * @param totalPrice
-     * @param isCancelled
+     * @param id                The unique ID of the reservation.
+     * @param fromDate          The start date of the reservation.
+     * @param toDate            The end date of the reservation.
+     * @param rooms             The map of room IDs to booking prices.
+     * @param bookedBy          The ID of the user who booked the reservation.
+     * @param cancellationFees  The cancellation fees.
+     * @param totalPrice        The total price of the reservation.
+     * @param isCancelled       The cancellation status of the reservation.
      */
     @JsonCreator
     public Reservation(@JsonProperty("id") int id,
                        @JsonProperty("fromDate") LocalDateTime fromDate,
                        @JsonProperty("toDate") LocalDateTime toDate,
-                       @JsonProperty("rooms") Map<Integer, Double> rooms,
-                       @JsonProperty("bookedBy") int bookedBy,
+                       @JsonProperty("roomsIds") Map<Integer, Double> rooms,
+                       @JsonProperty("bookedById") int bookedBy,
                        @JsonProperty("cancellationFees") double cancellationFees,
                        @JsonProperty("totalPrice") double totalPrice,
                        @JsonProperty("isCancelled") boolean isCancelled) {
         this.setId(id);
         this.setFromDate(fromDate);
         this.setToDate(toDate);
-        this.setRooms(rooms);
-        this.setBookedBy(bookedBy);
+        this.setRoomsIds(rooms);
+        this.setBookedById(bookedBy);
         this.setCancellationFees(cancellationFees);
         this.setTotalPrice(totalPrice);
         this.setCancelled(isCancelled);
     }
 
     /**
+     * Gets the unique ID of the reservation.
      *
-     * @return
+     * @return The ID of the reservation.
      */
     public int getId() {
         return id;
     }
 
     /**
+     * Sets the unique ID of the reservation.
      *
-     * @param id
+     * @param id The ID to set.
      */
     @JsonSetter("id")
     public void setId(int id) {
@@ -143,16 +156,18 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Gets the start date of the reservation.
      *
-     * @return
+     * @return The start date of the reservation.
      */
     public LocalDateTime getFromDate() {
         return fromDate;
     }
 
     /**
+     * Sets the start date of the reservation.
      *
-     * @param fromDate
+     * @param fromDate The start date to set.
      */
     @JsonSetter("fromDate")
     public void setFromDate(LocalDateTime fromDate) {
@@ -160,16 +175,18 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Gets the end date of the reservation.
      *
-     * @return
+     * @return The end date of the reservation.
      */
     public LocalDateTime getToDate() {
         return toDate;
     }
 
     /**
+     * Sets the end date of the reservation.
      *
-     * @param toDate
+     * @param toDate The end date to set.
      */
     @JsonSetter("toDate")
     public void setToDate(LocalDateTime toDate) {
@@ -177,50 +194,56 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Gets the map of room IDs to booking prices.
      *
-     * @return
+     * @return The map of room IDs to booking prices.
      */
-    @JsonSetter("rooms")
-    public Map<Integer, Double> getRooms() {
-        return rooms;
+    @JsonSetter("roomsIds")
+    public Map<Integer, Double> getRoomsIds() {
+        return roomsIds;
     }
 
     /**
+     * Sets the map of room IDs to booking prices.
      *
-     * @param rooms
+     * @param roomsIds The map of room IDs to booking prices to set.
      */
-    public void setRooms(Map<Integer, Double> rooms) {
-        this.rooms = rooms;
+    public void setRoomsIds(Map<Integer, Double> roomsIds) {
+        this.roomsIds = roomsIds;
     }
 
     /**
+     * Gets the ID of the user who booked the reservation.
      *
-     * @return
+     * @return The ID of the user who booked the reservation.
      */
-    public int getBookedBy() {
-        return bookedBy;
+    public int getBookedById() {
+        return bookedById;
     }
 
     /**
+     * Sets the ID of the user who booked the reservation.
      *
-     * @param bookedBy
+     * @param bookedById The ID of the user who booked the reservation to set.
      */
-    @JsonSetter("bookedBy")
-    public void setBookedBy(int bookedBy) {
-        this.bookedBy = bookedBy;
+    @JsonSetter("bookedById")
+    public void setBookedById(int bookedById) {
+        this.bookedById = bookedById;
     }
 
     /**
+     * Gets the cancellation fees of the reservation.
      *
-     * @return
+     * @return The cancellation fees of the reservation.
      */
     public double getCancellationFees() {
         return cancellationFees;
     }
 
     /**
+     * Sets the cancellation fees of the reservation.
      *
-     * @param cancellationFees
+     * @param cancellationFees The cancellation fees to set.
      */
     @JsonSetter("cancellationFees")
     public void setCancellationFees(double cancellationFees) {
@@ -228,16 +251,18 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Gets the total price of the reservation.
      *
-     * @return
+     * @return The total price of the reservation.
      */
     public double getTotalPrice() {
         return totalPrice;
     }
 
     /**
+     * Sets the total price of the reservation.
      *
-     * @param totalPrice
+     * @param totalPrice The total price to set.
      */
     @JsonSetter("totalPrice")
     public void setTotalPrice(double totalPrice) {
@@ -245,16 +270,18 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Checks if the reservation is cancelled.
      *
-     * @return
+     * @return True if the reservation is cancelled, false otherwise.
      */
     public boolean isCancelled() {
         return isCancelled;
     }
 
     /**
+     * Sets the cancellation status of the reservation.
      *
-     * @param cancelled
+     * @param cancelled True to cancel the reservation, false otherwise.
      */
     @JsonSetter("isCancelled")
     public void setCancelled(boolean cancelled) {
@@ -262,22 +289,23 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Calculates the total price of the reservation based on the number of days.
      *
-     * @param days
-     * @return
+     * @param days The number of days of the reservation.
+     * @return The total price of the reservation.
      */
     public double calculateTotalPrice(int days) {
         double total = 0.0;
-        for (Map.Entry<Integer, Double> bookedRoom : this.rooms.entrySet()) {
+        for (Map.Entry<Integer, Double> bookedRoom : this.roomsIds.entrySet()) {
             total += (bookedRoom.getValue() * days);
         }
-
         return total;
     }
 
     /**
+     * Converts the reservation to a JSON string representation.
      *
-     * @return
+     * @return The JSON string representation of the reservation.
      */
     @Override
     public String toString() {
@@ -297,29 +325,32 @@ public class Reservation implements Comparable<Reservation> {
     }
 
     /**
+     * Compares this reservation to another reservation for ordering.
      *
-     * @param o the object to be compared.
-     * @return
+     * @param o The other reservation to compare to.
+     * @return A negative integer, zero, or a positive integer as this reservation is less than, equal to, or greater than the specified reservation.
      */
     @Override
     public int compareTo(Reservation o) {
+        int firstCondition, secondCondition = 0;
 
-        int firstCondition = 0, secondCondition = 0;
-        if(this.getId() < o.getId() && this.getFromDate().isBefore(o.getFromDate())
-            && this.getToDate().isBefore(o.getToDate()) && this.getTotalPrice() < o.getTotalPrice()
-            && this.getCancellationFees() < o.getCancellationFees() && this.getBookedBy() < o.getBookedBy()) {
+        // Compare ID, dates, total price, cancellation fees, and bookedById
+        if (this.getId() < o.getId() && this.getFromDate().isBefore(o.getFromDate())
+                && this.getToDate().isBefore(o.getToDate()) && this.getTotalPrice() < o.getTotalPrice()
+                && this.getCancellationFees() < o.getCancellationFees() && this.getBookedById() < o.getBookedById()) {
             firstCondition = -1;
         } else if (this.getId() == o.getId() && this.getFromDate().equals(o.getFromDate())
                 && this.getToDate().equals(o.getToDate()) && this.getTotalPrice() == o.getTotalPrice()
-                && this.getCancellationFees() == o.getCancellationFees() && this.getBookedBy() == o.getBookedBy()) {
+                && this.getCancellationFees() == o.getCancellationFees() && this.getBookedById() == o.getBookedById()) {
             firstCondition = 0;
         } else {
             firstCondition = 1;
         }
 
-        for(Map.Entry<Integer, Double> currentRoomId : this.getRooms().entrySet()) {
-            for(Map.Entry<Integer, Double> otherRoomId : o.getRooms().entrySet()) {
-                if(currentRoomId.getKey().compareTo(otherRoomId.getKey()) < 0
+        // Compare roomsIds map
+        for (Map.Entry<Integer, Double> currentRoomId : this.getRoomsIds().entrySet()) {
+            for (Map.Entry<Integer, Double> otherRoomId : o.getRoomsIds().entrySet()) {
+                if (currentRoomId.getKey().compareTo(otherRoomId.getKey()) < 0
                         && Double.compare(currentRoomId.getValue(), otherRoomId.getValue()) < 0) {
                     secondCondition = -1;
                 } else if (currentRoomId.getKey().compareTo(otherRoomId.getKey()) == 0
@@ -331,7 +362,7 @@ public class Reservation implements Comparable<Reservation> {
             }
         }
 
-        if(firstCondition < 0 || secondCondition < 0) {
+        if (firstCondition < 0 || secondCondition < 0) {
             return -1;
         } else if (firstCondition == 0 && secondCondition == 0) {
             return 0;
