@@ -1,0 +1,3 @@
+# Hotel Room Reservation System's classes diagram
+![classes_diagram](https://github.com/pety02/HotelRoomReservationSystem_professionalSirmaAcademySeason4/assets/47276102/d41cd3b7-f988-451b-84e5-1387a7d9f39e)
+### In this project there is opportunity of registration and login for every user. After registrating the user will be stored in a text file in json format. Then all users will be able to book a room, cancel booking, view all reservations and so on. Also, in the application there is a basic admin functionality with the command "Go to Admin Panel" and correct admin code such as Add Room, Remove Room, Update Room Data and so on.
