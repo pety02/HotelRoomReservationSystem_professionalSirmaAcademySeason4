@@ -15,6 +15,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *
+ */
 @JsonPropertyOrder({"id", "username", "email", "password"})
 @JsonRootName("User")
 public class User implements Comparable<User> {
@@ -25,11 +28,17 @@ public class User implements Comparable<User> {
     private String password;
     private Map<Integer, Double> reservations;
     private Map.Entry<Integer, Double> debitCard;
-
     private int generateId() {
         return ++User.userNo;
     }
 
+    /**
+     *
+     * @param password
+     * @return
+     * @throws InvalidKeySpecException
+     * @throws NoSuchAlgorithmException
+     */
     public static String hashPassword(String password) throws InvalidKeySpecException, NoSuchAlgorithmException {
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
@@ -47,14 +56,31 @@ public class User implements Comparable<User> {
         return sb.toString();
     }
 
-    // Default constructor for Jackson
+    /**
+     *
+     */
     public User() {
         this("", "", "", new ArrayList<>(), new DebitCard());
     }
+
+    /**
+     *
+     * @param username
+     * @param email
+     * @param password
+     */
     public User(String username, String email, String password) {
         this(username, email, password, new ArrayList<>(), null);
     }
 
+    /**
+     *
+     * @param username
+     * @param email
+     * @param password
+     * @param reservations
+     * @param debitCard
+     */
     public User(String username, String email, String password, ArrayList<Reservation> reservations, DebitCard debitCard) {
         this.setUsername(username);
         this.setEmail(email);
@@ -77,6 +103,15 @@ public class User implements Comparable<User> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param id
+     * @param username
+     * @param email
+     * @param password
+     * @param reservations
+     * @param debitCard
+     */
     @JsonCreator
     public User(@JsonProperty("id") int id,
                 @JsonProperty("username") String username,
@@ -98,6 +133,13 @@ public class User implements Comparable<User> {
         this.setDebitCard(debitCard);
     }
 
+    /**
+     *
+     * @param id
+     * @param username
+     * @param email
+     * @param password
+     */
     public User(int id,
                 String username,
                 String email,
@@ -116,60 +158,115 @@ public class User implements Comparable<User> {
         this.setDebitCard(dce);
     }
 
+    /**
+     *
+     * @return
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     *
+     * @param id
+     */
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getUsername() {
         return username;
     }
 
+    /**
+     *
+     * @param username
+     */
     @JsonSetter("username")
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     *
+     * @param email
+     */
     @JsonSetter("email")
     public void setEmail(String email) {
         this.email = email;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     *
+     * @param password
+     * @param toBeHashed
+     * @throws InvalidKeySpecException
+     * @throws NoSuchAlgorithmException
+     */
     @JsonSetter("password")
     public void setPassword(String password, boolean toBeHashed) throws InvalidKeySpecException, NoSuchAlgorithmException {
         this.password = toBeHashed ? User.hashPassword(password) : password;
     }
 
+    /**
+     *
+     * @return
+     */
     public Map<Integer, Double> getReservations() {
         return reservations;
     }
 
+    /**
+     *
+     * @param reservations
+     */
     @JsonSetter("reservations")
     public void setReservations(Map<Integer, Double> reservations) {
         this.reservations = reservations;
     }
 
+    /**
+     *
+     * @return
+     */
     public Map.Entry<Integer, Double> getDebitCard() {
         return debitCard;
     }
 
+    /**
+     *
+     * @param debitCard
+     */
     @JsonSetter("debitCard")
     public void setDebitCard(Map.Entry<Integer, Double> debitCard) {
         this.debitCard = debitCard;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public String toString() {
         try {
@@ -180,15 +277,11 @@ public class User implements Comparable<User> {
         }
     }
 
-    private static User parse(String json) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        User obj = mapper.reader().readValue(json, User.class);
-        if(obj == null) {
-            System.out.println("Cannot parse object!");
-        }
-        return obj;
-    }
-
+    /**
+     *
+     * @param o the object to be compared.
+     * @return
+     */
     @Override
     public int compareTo(User o) {
         int firstCondition = 0, secondCondition = 0;
@@ -227,10 +320,5 @@ public class User implements Comparable<User> {
         } else {
             return 1;
         }
-    }
-
-    public static void main(String[] args) {
-        User u =  new User("petya123", "petyata@abv.bg", "petya123");
-        System.out.println(u);
     }
 }

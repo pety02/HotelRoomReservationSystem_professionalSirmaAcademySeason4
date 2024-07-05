@@ -4,25 +4,21 @@ import controllers.UserController;
 import models.Hotel;
 import models.Room;
 import models.User;
-import readersWriters.HotelReaderWriter;
-import readersWriters.RoomReaderWriter;
 import types.RoomType;
 import validators.UserCredentialsValidator;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
 
 public class Application {
-    private static final String usersFilename = "users.txt", roomsFilename = "rooms.txt",
-    reservationsFilename = "reservations.txt", hotelsFilename = "hotels.txt", debitCardsFilename = "debitCard.txt";
     private static final UserController userController = new UserController();
     private static final HotelController hotelController = new HotelController();
     private static final AdminController adminController = new AdminController();
 
+    /*
+    */
     private static String[] initRegistrationForm() {
         String[] credentials = new String[5];
         Scanner scanner = new Scanner(System.in);
@@ -44,6 +40,8 @@ public class Application {
         return credentials;
     }
 
+    /*
+     */
     private static String[] initLoginForm() {
         String[] credentials = new String[2];
         Scanner scanner = new Scanner(System.in);
@@ -59,6 +57,8 @@ public class Application {
         return credentials;
     }
 
+    /*
+     */
     private static void initMenu() {
         System.out.println("Hotel Room Reservation System");
         System.out.println("-----------------------------");
@@ -69,6 +69,8 @@ public class Application {
         System.out.println("4. Log Out");
     }
 
+    /*
+     */
     private static void initAdminMenu() {
         System.out.println("Hotel Room Reservation System / Admin Panel");
         System.out.println("-----------------------------");
@@ -82,6 +84,8 @@ public class Application {
         System.out.println("7. Log Out");
     }
 
+    /*
+     */
     private static Hotel initHotel() {
         // TODO: to read all this data.
         Hotel myHotel = new Hotel("Petya's Hotel", "Malina str. 8, Town-City", new ArrayList<>());
@@ -134,10 +138,14 @@ public class Application {
         return myHotel;
     }
 
+    /*
+     */
     private static void viewRooms(Hotel myHotel) {
         hotelController.viewAllRooms(myHotel);
     }
 
+    /*
+     */
     private static LocalDateTime parseDate(String dateString) {
         int year = Integer.parseInt(dateString.substring(0,4));
         int month = Integer.parseInt(dateString.substring(5,7));
@@ -147,6 +155,8 @@ public class Application {
         return LocalDateTime.of(year, month, day, hour, minute);
     }
 
+    /*
+     */
     private static void bookRoom(Hotel hotel, User loggedIn) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter from date: ");
@@ -176,10 +186,14 @@ public class Application {
         }
     }
 
+    /*
+     */
     private static void cancelBooking(int bookingId, User loggedIn, Hotel currentHotel) {
         hotelController.cancelReservation(bookingId, loggedIn, currentHotel);
     }
 
+    /*
+     */
     private static void executeCommand(String command, Hotel hotel, User currentUser) {
         Scanner scanner = new Scanner(System.in);
         switch (command) {
@@ -204,6 +218,8 @@ public class Application {
         }
     }
 
+    /*
+     */
     private static RoomType getType(String type) {
         return switch (type) {
             case "Deluxe" -> RoomType.DELUXE;
@@ -214,6 +230,8 @@ public class Application {
         };
     }
 
+    /*
+     */
     private static void executeAdminCommand(String adminCmd) {
         if(adminCmd.equals("Log Out") || adminCmd.equals("END")) {
             System.out.println("Goodbye... You had been successfully logged out!");
@@ -296,6 +314,8 @@ public class Application {
         }
     }
 
+    /*
+     */
     public static void main(String[] args) {
         Hotel hotel = initHotel();
         System.out.println("Welcome to Hotel Reservation System!");

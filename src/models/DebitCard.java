@@ -267,26 +267,4 @@ public class DebitCard implements Comparable<DebitCard> {
             return 1;
         }
     }
-
-    /**
-     *
-     * @param args
-     */
-    public static void main(String[] args) {
-        // DebitCard dc = new DebitCard(1000.0, 1);
-        DebitCardReaderWriter drw = new DebitCardReaderWriter();
-        //drw.write(dc, "debitCards.txt");
-
-        ArrayList<DebitCard> ls = new ArrayList<>();
-        File f = new File("debitCards.txt");
-        try(FileReader fr = new FileReader(f)) {
-            ls = drw.read(fr, f);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            ex.printStackTrace();
-        }
-        for(DebitCard c : ls) {
-            System.out.println(c);
-        }
-    }
 }

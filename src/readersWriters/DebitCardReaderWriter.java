@@ -1,19 +1,24 @@
 package readersWriters;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import interfaces.IReadableWritable;
 import models.DebitCard;
 
 import java.util.*;
 import java.io.*;
 
+/**
+ *
+ */
 public class DebitCardReaderWriter extends ReaderWriter<DebitCard> {
-
-    private static DebitCard parse(String json) throws IOException {
+    private static ObjectMapper createObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
+
+    private static DebitCard parse(String json) throws IOException {
+        ObjectMapper mapper = createObjectMapper();
         DebitCard obj = mapper.reader().readValue(json, DebitCard.class);
         if(obj == null) {
             System.out.println("Cannot parse object!");
@@ -21,6 +26,11 @@ public class DebitCardReaderWriter extends ReaderWriter<DebitCard> {
         return obj;
     }
 
+    /**
+     *
+     * @param obj
+     * @param filename
+     */
     @Override
     public void write(DebitCard obj, String filename) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
@@ -32,6 +42,12 @@ public class DebitCardReaderWriter extends ReaderWriter<DebitCard> {
         }
     }
 
+    /**
+     *
+     * @param fr
+     * @param file
+     * @return
+     */
     @Override
     public ArrayList<DebitCard> read(FileReader fr, File file) {
         ArrayList<DebitCard> cards = new ArrayList<>();

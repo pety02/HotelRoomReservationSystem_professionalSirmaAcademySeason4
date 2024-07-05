@@ -1,16 +1,15 @@
 package readersWriters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import interfaces.IReadableWritable;
-import models.DebitCard;
 import models.Hotel;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 
+/**
+ *
+ */
 public class HotelReaderWriter extends ReaderWriter<Hotel>  {
-
     private static Hotel parse(String json) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         Hotel obj = mapper.reader().readValue(json, Hotel.class);
@@ -20,6 +19,11 @@ public class HotelReaderWriter extends ReaderWriter<Hotel>  {
         return obj;
     }
 
+    /**
+     *
+     * @param obj
+     * @param filename
+     */
     @Override
     public void write(Hotel obj, String filename) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
@@ -31,6 +35,12 @@ public class HotelReaderWriter extends ReaderWriter<Hotel>  {
         }
     }
 
+    /**
+     *
+     * @param fr
+     * @param file
+     * @return
+     */
     @Override
     public ArrayList<Hotel> read(FileReader fr, File file) {
         StringBuilder sb = new StringBuilder();

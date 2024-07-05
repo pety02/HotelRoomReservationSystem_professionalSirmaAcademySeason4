@@ -6,18 +6,14 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.*;
 
 import com.fasterxml.jackson.databind.util.StdDateFormat;
-import readersWriters.ReservationReaderWriter;
 import utils.LocalDateTimeMapDeserializer;
-
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-
+/**
+ *
+ */
 @JsonPropertyOrder({"id", "fromDate", "toDate", "rooms", "bookedBy", "cancellationFees", "totalPrice", "isCancelled"})
 @JsonRootName("Reservation")
 public class Reservation implements Comparable<Reservation> {
@@ -37,6 +33,9 @@ public class Reservation implements Comparable<Reservation> {
         return ++Reservation.reservationNo;
     }
 
+    /**
+     *
+     */
     public Reservation() {
         this.setFromDate(LocalDateTime.now());
         this.setToDate(LocalDateTime.now());
@@ -48,6 +47,15 @@ public class Reservation implements Comparable<Reservation> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param fromDate
+     * @param toDate
+     * @param rooms
+     * @param bookedBy
+     * @param cancellationFees
+     * @param isCancelled
+     */
     public Reservation(LocalDateTime fromDate,
                        LocalDateTime toDate,
                        Map<Integer, Double> rooms,
@@ -65,6 +73,13 @@ public class Reservation implements Comparable<Reservation> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param fromDate
+     * @param toDate
+     * @param cancellationFees
+     * @param isCancelled
+     */
     public Reservation(LocalDateTime fromDate,
                        LocalDateTime toDate,
                        double cancellationFees,
@@ -80,6 +95,17 @@ public class Reservation implements Comparable<Reservation> {
         this.setCancelled(isCancelled);
     }
 
+    /**
+     *
+     * @param id
+     * @param fromDate
+     * @param toDate
+     * @param rooms
+     * @param bookedBy
+     * @param cancellationFees
+     * @param totalPrice
+     * @param isCancelled
+     */
     @JsonCreator
     public Reservation(@JsonProperty("id") int id,
                        @JsonProperty("fromDate") LocalDateTime fromDate,
@@ -99,78 +125,147 @@ public class Reservation implements Comparable<Reservation> {
         this.setCancelled(isCancelled);
     }
 
+    /**
+     *
+     * @return
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     *
+     * @param id
+     */
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
 
+    /**
+     *
+     * @return
+     */
     public LocalDateTime getFromDate() {
         return fromDate;
     }
 
+    /**
+     *
+     * @param fromDate
+     */
     @JsonSetter("fromDate")
     public void setFromDate(LocalDateTime fromDate) {
         this.fromDate = fromDate;
     }
 
+    /**
+     *
+     * @return
+     */
     public LocalDateTime getToDate() {
         return toDate;
     }
 
+    /**
+     *
+     * @param toDate
+     */
     @JsonSetter("toDate")
     public void setToDate(LocalDateTime toDate) {
         this.toDate = toDate;
     }
 
+    /**
+     *
+     * @return
+     */
     @JsonSetter("rooms")
     public Map<Integer, Double> getRooms() {
         return rooms;
     }
 
+    /**
+     *
+     * @param rooms
+     */
     public void setRooms(Map<Integer, Double> rooms) {
         this.rooms = rooms;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getBookedBy() {
         return bookedBy;
     }
 
+    /**
+     *
+     * @param bookedBy
+     */
     @JsonSetter("bookedBy")
     public void setBookedBy(int bookedBy) {
         this.bookedBy = bookedBy;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getCancellationFees() {
         return cancellationFees;
     }
 
+    /**
+     *
+     * @param cancellationFees
+     */
     @JsonSetter("cancellationFees")
     public void setCancellationFees(double cancellationFees) {
         this.cancellationFees = cancellationFees;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getTotalPrice() {
         return totalPrice;
     }
 
+    /**
+     *
+     * @param totalPrice
+     */
     @JsonSetter("totalPrice")
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isCancelled() {
         return isCancelled;
     }
 
+    /**
+     *
+     * @param cancelled
+     */
     @JsonSetter("isCancelled")
     public void setCancelled(boolean cancelled) {
         isCancelled = cancelled;
     }
 
+    /**
+     *
+     * @param days
+     * @return
+     */
     public double calculateTotalPrice(int days) {
         double total = 0.0;
         for (Map.Entry<Integer, Double> bookedRoom : this.rooms.entrySet()) {
@@ -180,6 +275,10 @@ public class Reservation implements Comparable<Reservation> {
         return total;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public String toString() {
         ObjectMapper mapper = new ObjectMapper();
@@ -197,6 +296,11 @@ public class Reservation implements Comparable<Reservation> {
         }
     }
 
+    /**
+     *
+     * @param o the object to be compared.
+     * @return
+     */
     @Override
     public int compareTo(Reservation o) {
 
@@ -233,25 +337,6 @@ public class Reservation implements Comparable<Reservation> {
             return 0;
         } else {
             return 1;
-        }
-    }
-
-    public static void main(String[] args) {
-        Reservation r = new Reservation(LocalDateTime.of(2024,7,2,10,30), LocalDateTime.of(2024,7,5,12,30), 100.00, false);
-        System.out.println(r);
-        ReservationReaderWriter rrw=  new ReservationReaderWriter();
-        rrw.write(r, "reservations.txt");
-
-        ArrayList<Reservation> ls = new ArrayList<>();
-        File f = new File("reservations.txt");
-        try(FileReader fr = new FileReader(f)) {
-            ls = rrw.read(fr, f);
-        } catch (IOException ex) {
-            ex.fillInStackTrace();
-            ex.printStackTrace();
-        }
-        for(Reservation c : ls) {
-            System.out.println(c);
         }
     }
 }

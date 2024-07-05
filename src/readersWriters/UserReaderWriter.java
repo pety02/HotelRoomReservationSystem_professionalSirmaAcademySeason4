@@ -1,14 +1,14 @@
 package readersWriters;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import interfaces.IReadableWritable;
-import models.DebitCard;
 import models.User;
 
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ *
+ */
 public class UserReaderWriter extends ReaderWriter<User> {
 
     private static User parse(String json) throws IOException {
@@ -20,6 +20,11 @@ public class UserReaderWriter extends ReaderWriter<User> {
         return obj;
     }
 
+    /**
+     *
+     * @param obj
+     * @param filename
+     */
     @Override
     public void write(User obj, String filename)  {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
@@ -31,6 +36,12 @@ public class UserReaderWriter extends ReaderWriter<User> {
         }
     }
 
+    /**
+     *
+     * @param fr
+     * @param file
+     * @return
+     */
     @Override
     public ArrayList<User> read(FileReader fr, File file) {
         StringBuilder sb = new StringBuilder();

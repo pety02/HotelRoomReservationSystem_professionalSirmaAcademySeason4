@@ -13,7 +13,17 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+/**
+ *
+ */
 public class LocalDateTimeMapDeserializer extends JsonDeserializer<Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean>> {
+    /**
+     *
+     * @param jp
+     * @param ctxt
+     * @return
+     * @throws IOException
+     */
     @Override
     public Map<Map.Entry<LocalDateTime, LocalDateTime>, Boolean> deserialize(JsonParser jp, DeserializationContext ctxt)
             throws IOException {

@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 
+/**
+ *
+ */
 @JsonPropertyOrder({"id", "name", "address", "allRooms", "bookedRooms", "incomes"})
 @JsonRootName("Hotel")
 public class Hotel implements Comparable<Hotel> {
@@ -21,9 +24,24 @@ public class Hotel implements Comparable<Hotel> {
         return ++Hotel.hotelNo;
     }
 
+    /**
+     *
+     */
     public Hotel() {
+        this.setId(this.generateId());
+        this.setName("");
+        this.setAddress("");
+        this.setIncomes(0.0);
+        this.setAllRooms(new ArrayList<>());
+        this.setBookedRooms(new ArrayList<>());
     }
 
+    /**
+     *
+     * @param name
+     * @param address
+     * @param allRooms
+     */
     public Hotel(String name, String address, ArrayList<Room> allRooms) {
         this.setId(this.generateId());
         this.setName(name);
@@ -37,6 +55,15 @@ public class Hotel implements Comparable<Hotel> {
         this.setIncomes(0.0);
     }
 
+    /**
+     *
+     * @param id
+     * @param name
+     * @param address
+     * @param allRooms
+     * @param bookedRooms
+     * @param incomes
+     */
     @JsonCreator
     public Hotel(@JsonProperty("id") int id,
                  @JsonProperty("name") String name,
@@ -52,60 +79,112 @@ public class Hotel implements Comparable<Hotel> {
         this.setIncomes(incomes);
     }
 
+    /**
+     *
+     * @return
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     *
+     * @param id
+     */
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     *
+     * @param name
+     */
     @JsonSetter("name")
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getAddress() {
         return address;
     }
 
+    /**
+     *
+     * @param address
+     */
     @JsonSetter("address")
     public void setAddress(String address) {
         this.address = address;
     }
 
+    /**
+     *
+     * @return
+     */
     public ArrayList<Integer> getAllRooms() {
         return allRooms;
     }
 
+    /**
+     *
+     * @param allRooms
+     */
     @JsonSetter("allRooms")
     public void setAllRooms(ArrayList<Integer> allRooms) {
         this.allRooms = allRooms;
     }
 
+    /**
+     *
+     * @return
+     */
     public ArrayList<Integer> getBookedRooms() {
         return bookedRooms;
     }
 
+    /**
+     *
+     * @param bookedRooms
+     */
     @JsonSetter("bookedRooms")
     public void setBookedRooms(ArrayList<Integer> bookedRooms) {
         this.bookedRooms = bookedRooms;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getIncomes() {
         return incomes;
     }
 
+    /**
+     *
+     * @param incomes
+     */
     @JsonSetter("incomes")
     public void setIncomes(double incomes) {
         this.incomes = incomes;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public String toString() {
         try {
@@ -116,11 +195,11 @@ public class Hotel implements Comparable<Hotel> {
         }
     }
 
-    public static void main(String[] args) {
-        Hotel h = new Hotel();
-        System.out.println(h);
-    }
-
+    /**
+     *
+     * @param o the object to be compared.
+     * @return
+     */
     @Override
     public int compareTo(Hotel o) {
         int firstCondition = 0, secondCondition = 0, thirdCondition = 0;

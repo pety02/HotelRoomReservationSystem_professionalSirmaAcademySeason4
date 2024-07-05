@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ *
+ */
 @JsonPropertyOrder({"id", "hotel", "type", "amenities", "maximumOccupancy",
         "pricePerNight", "totalPrice", "isBooked", "bookingAvailability", "inReservations"})
 @JsonRootName("Room")
@@ -31,6 +34,9 @@ public class Room implements Comparable<Room> {
         return ++Room.roomNo;
     }
 
+    /**
+     *
+     */
     public Room() {
         this.setType(RoomType.UNKNOWN);
         this.setHotel(0);
@@ -48,6 +54,17 @@ public class Room implements Comparable<Room> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param hotel
+     * @param type
+     * @param amenities
+     * @param maximumOccupancy
+     * @param isBooked
+     * @param bookingAvailability
+     * @param pricePerNight
+     * @param inReservations
+     */
     public Room(int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
                 boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
                 double pricePerNight, ArrayList<Integer> inReservations) {
@@ -63,6 +80,18 @@ public class Room implements Comparable<Room> {
         this.setId(this.generateId());
     }
 
+    /**
+     *
+     * @param id
+     * @param hotel
+     * @param type
+     * @param amenities
+     * @param maximumOccupancy
+     * @param isBooked
+     * @param bookingAvailability
+     * @param pricePerNight
+     * @param inReservations
+     */
     public Room(int id, int hotel, RoomType type, ArrayList<String> amenities, int maximumOccupancy,
                 boolean isBooked, Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability,
                 double pricePerNight, ArrayList<Integer> inReservations) {
@@ -78,6 +107,19 @@ public class Room implements Comparable<Room> {
         this.setInReservations(inReservations);
     }
 
+    /**
+     *
+     * @param id
+     * @param hotel
+     * @param type
+     * @param amenities
+     * @param maximumOccupancy
+     * @param pricePerNight
+     * @param totalPrice
+     * @param isBooked
+     * @param bookingAvailability
+     * @param inReservations
+     */
     @JsonCreator
     public Room(@JsonProperty("id") int id,
                 @JsonProperty("hotel") Integer hotel,
@@ -101,96 +143,180 @@ public class Room implements Comparable<Room> {
         this.setInReservations(inReservations);
     }
 
+    /**
+     *
+     * @return
+     */
     public int getId() {
         return id;
     }
 
+    /**
+     *
+     * @param id
+     */
     @JsonSetter("id")
     public void setId(int id) {
         this.id = id;
     }
 
+    /**
+     *
+     * @return
+     */
     public Integer getHotel() {
         return hotel;
     }
 
+    /**
+     *
+     * @param hotel
+     */
     @JsonSetter("hotel")
     public void setHotel(Integer hotel) {
         this.hotel = hotel;
     }
 
+    /**
+     *
+     * @return
+     */
     public RoomType getType() {
         return type;
     }
 
+    /**
+     *
+     * @param type
+     */
     @JsonSetter("type")
     public void setType(RoomType type) {
         this.type = type;
     }
 
+    /**
+     *
+     * @return
+     */
     public ArrayList<String> getAmenities() {
         return amenities;
     }
 
+    /**
+     *
+     * @param amenities
+     */
     @JsonSetter("amenities")
     public void setAmenities(ArrayList<String> amenities) {
         this.amenities = amenities;
     }
 
+    /**
+     *
+     * @return
+     */
     public int getMaximumOccupancy() {
         return maximumOccupancy;
     }
 
+    /**
+     *
+     * @param maximumOccupancy
+     */
     @JsonSetter("maximumOccupancy")
     public void setMaximumOccupancy(int maximumOccupancy) {
         this.maximumOccupancy = maximumOccupancy;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getPricePerNight() {
         return pricePerNight;
     }
 
+    /**
+     *
+     * @param pricePerNight
+     */
     @JsonSetter("pricePerNight")
     public void setPricePerNight(double pricePerNight) {
         this.pricePerNight = pricePerNight;
     }
 
+    /**
+     *
+     * @return
+     */
     public double getTotalPrice() {
         return totalPrice;
     }
 
+    /**
+     *
+     * @param totalPrice
+     */
     @JsonSetter("totalPrice")
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
 
+    /**
+     *
+     * @return
+     */
     public boolean isBooked() {
         return isBooked;
     }
 
+    /**
+     *
+     * @param booked
+     */
     @JsonSetter("isBooked")
     public void setBooked(boolean booked) {
         this.isBooked = booked;
     }
 
+    /**
+     *
+     * @return
+     */
     public Map<Boolean, ArrayList<LocalDateTime>> getBookingAvailability() {
         return bookingAvailability;
     }
 
+    /**
+     *
+     * @param bookingAvailability
+     */
     @JsonSetter("bookingAvailability")
     public void setBookingAvailability(Map<Boolean, ArrayList<LocalDateTime>> bookingAvailability) {
         this.bookingAvailability = bookingAvailability;
     }
 
+    /**
+     *
+     * @return
+     */
     public ArrayList<Integer> getInReservations() {
         return inReservations;
     }
 
+    /**
+     *
+     * @param inReservations
+     */
     @JsonSetter("inReservations")
     public void setInReservations(ArrayList<Integer> inReservations) {
         this.inReservations = inReservations;
     }
 
+    /**
+     *
+     * @return
+     */
     @Override
     public String toString() {
         ObjectMapper mapper = new ObjectMapper();
@@ -205,6 +331,11 @@ public class Room implements Comparable<Room> {
         }
     }
 
+    /**
+     *
+     * @param o the object to be compared.
+     * @return
+     */
     @Override
     public int compareTo(Room o) {
         int firstCondition = 0, secondCondition = 0, thirdCondition = 0, fourthCondition = 0;
@@ -269,10 +400,5 @@ public class Room implements Comparable<Room> {
         } else {
             return 1;
         }
-    }
-
-    public static void main(String[] args) {
-        Room r = new Room();
-        System.out.println(r);
     }
 }

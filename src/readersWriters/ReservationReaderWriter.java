@@ -2,16 +2,22 @@ package readersWriters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import interfaces.IReadableWritable;
-import models.DebitCard;
 import models.Reservation;
 
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ *
+ */
 public class ReservationReaderWriter extends ReaderWriter<Reservation> {
-    private static Reservation parse(String json) throws IOException {
+    private static ObjectMapper createObjectMapper() {
         ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        return mapper;
+    }
+    private static Reservation parse(String json) throws IOException {
+        ObjectMapper mapper = createObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         Reservation obj = mapper.reader().readValue(json, Reservation.class);
         if(obj == null) {
@@ -19,6 +25,12 @@ public class ReservationReaderWriter extends ReaderWriter<Reservation> {
         }
         return obj;
     }
+
+    /**
+     *
+     * @param obj
+     * @param filename
+     */
     @Override
     public void write(Reservation obj, String filename) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
@@ -30,6 +42,12 @@ public class ReservationReaderWriter extends ReaderWriter<Reservation> {
         }
     }
 
+    /**
+     *
+     * @param fr
+     * @param file
+     * @return
+     */
     @Override
     public ArrayList<Reservation> read(FileReader fr, File file) {
         StringBuilder sb = new StringBuilder();

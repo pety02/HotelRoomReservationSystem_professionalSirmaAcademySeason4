@@ -2,13 +2,14 @@ package readersWriters;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import interfaces.IReadableWritable;
-import models.DebitCard;
 import models.Room;
 
 import java.io.*;
 import java.util.ArrayList;
 
+/**
+ *
+ */
 public class RoomReaderWriter extends ReaderWriter<Room> {
 
     private static ObjectMapper createObjectMapper() {
@@ -26,6 +27,11 @@ public class RoomReaderWriter extends ReaderWriter<Room> {
         return obj;
     }
 
+    /**
+     *
+     * @param obj
+     * @param filename
+     */
     @Override
     public void write(Room obj, String filename) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename, true))) {
@@ -37,6 +43,12 @@ public class RoomReaderWriter extends ReaderWriter<Room> {
         }
     }
 
+    /**
+     *
+     * @param fr
+     * @param file
+     * @return
+     */
     @Override
     public ArrayList<Room> read(FileReader fr, File file) {
         StringBuilder sb = new StringBuilder();
